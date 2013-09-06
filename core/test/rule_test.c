@@ -1,5 +1,5 @@
 #include "rule.h"
-#include "helper.h"
+#include "_test_helper.h"
 
 TEST(IPRule) {
   IT("can construct rules correctly") {

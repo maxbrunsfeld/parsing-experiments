@@ -4,7 +4,7 @@ TEST_CFLAGS=-fnested-functions -Itest -Iexternals/bantam-bdd
 LIB_FILE=./libiparse.a
 SOURCE_FILES=src/*.c
 OBJECT_FILES=*.o
-TEST_FILES=test/index.c
+TEST_FILES=test/_test_runner.c
 TEST_BIN=test/run.out
 
 all: clean test

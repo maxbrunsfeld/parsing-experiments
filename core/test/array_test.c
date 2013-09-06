@@ -1,5 +1,5 @@
 #include "array.h"
-#include "helper.h"
+#include "_test_helper.h"
 
 TEST(IPArray)
 {
