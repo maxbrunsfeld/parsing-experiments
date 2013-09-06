@@ -1,3 +1,3 @@
-[submodule "compiler/externals/bantam-bdd"]
-	path = compiler/externals/bantam-bdd
+[submodule "core/externals/bantam-bdd"]
+	path = core/externals/bantam-bdd
 	url = git@github.com:maxbrunsfeld/bantam-bdd.git
