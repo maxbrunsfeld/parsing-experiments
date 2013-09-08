@@ -1,3 +1,5 @@
+*.dSYM
+*.so
 *.o
 *.a
 tags

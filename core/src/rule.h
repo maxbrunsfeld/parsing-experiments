@@ -1,3 +1,6 @@
+#ifndef __RULE_H__
+#define __RULE_H__
+
 #include "array.h"
 
 // types
@@ -41,3 +44,5 @@ IPArray * ip_rule_transitions(IPRule *rule);
 
 // comparison
 int ip_rule_eq(IPRule *rule1, IPRule *rule2);
+
+#endif

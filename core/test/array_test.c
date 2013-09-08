@@ -1,5 +1,5 @@
-#include "array.h"
 #include "_test_helper.h"
+#include "array.h"
 
 TEST(IPArray)
 {
@@ -41,4 +41,3 @@ TEST(IPArray)
 }
 
 END_TEST
-

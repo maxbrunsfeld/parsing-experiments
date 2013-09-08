@@ -7,8 +7,10 @@
 #define CHOICE ip_rule_new_choice
 #define SYM    ip_rule_new_sym
 #define SEQ    ip_rule_new_seq
+#define TOKEN  ip_token_new
+
+#define ID     ip_rule_id
 #define LEFT   ip_rule_left
 #define RIGHT  ip_rule_right
-#define ID     ip_rule_id
 
 #endif
