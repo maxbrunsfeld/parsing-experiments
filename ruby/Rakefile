@@ -1,0 +1,31 @@
+GEM_NAME = "tree_sitter"
+LIB_DIR = "lib/#{GEM_NAME}"
+EXT_DIR = "ext/#{GEM_NAME}"
+DLL_FILE = "#{GEM_NAME}.bundle"
+
+task :default => [:build, :spec]
+
+desc "Run specs"
+task :spec do
+  sh "rspec"
+end
+
+desc "Compile C code"
+task :build => :makefile do
+  sh "make all"
+  sh "mv #{DLL_FILE} #{LIB_DIR}"
+end
+
+task :makefile do
+  sh "ruby #{EXT_DIR}/extconf.rb --with-tree-sitter-lib=../core --with-tree-sitter-include=../core/src"
+end
+
+desc "Remove compiled files"
+task :clean do
+  sh "rm -f Makefile *.o #{LIB_DIR}/#{DLL_FILE} *.log"
+end
+
+desc "Open console with library loaded"
+task :console do
+  sh "irb -r ./script/console"
+end

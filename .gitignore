@@ -2,5 +2,6 @@
 *.so
 *.o
 *.a
-tags
 *.out
+*.log
+tags
