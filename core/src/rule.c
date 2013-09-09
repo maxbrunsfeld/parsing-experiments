@@ -1,82 +1,92 @@
-#include "rule.h"
-#include "stdlib.h"
-#include "check.h"
+#include "tree-sitter.h"
+#include "private.h"
+
+struct TSRule {
+  TSRuleType type;
+  union {
+    TSSymbolId symbol_id;
+    struct {
+      struct TSRule *left;
+      struct TSRule *right;
+    } binary;
+  } impl;
+};
 
 // constructors
-IPRule * ip_rule_new_sym(IPSymbolId id)
+TSRule * ts_rule_new_sym(TSSymbolId id)
 {
-  IPRule* rule = malloc(sizeof(*rule));
-  rule->type = IPRuleTypeSym;
+  TSRule* rule = malloc(sizeof(*rule));
+  rule->type = TSRuleTypeSym;
   rule->impl.symbol_id = id;
   return rule;
 }
 
-IPRule * ip_rule_new_choice(IPRule *left, IPRule *right)
+TSRule * ts_rule_new_choice(TSRule *left, TSRule *right)
 {
-  IPRule* rule = malloc(sizeof(IPRule));
-  rule->type = IPRuleTypeChoice;
+  TSRule* rule = malloc(sizeof(TSRule));
+  rule->type = TSRuleTypeChoice;
   rule->impl.binary.left = left;
   rule->impl.binary.right = right;
   return rule;
 }
 
-IPRule * ip_rule_new_seq(IPRule *left, IPRule *right)
+TSRule * ts_rule_new_seq(TSRule *left, TSRule *right)
 {
-  IPRule* rule = malloc(sizeof(IPRule));
-  rule->type = IPRuleTypeSeq;
+  TSRule* rule = malloc(sizeof(TSRule));
+  rule->type = TSRuleTypeSeq;
   rule->impl.binary.left = left;
   rule->impl.binary.right = right;
   return rule;
 }
 
-IPRule * ip_rule_new_end()
+TSRule * ts_rule_new_end()
 {
-  IPRule* rule = malloc(sizeof(IPRule));
-  rule->type = IPRuleTypeEnd;
+  TSRule* rule = malloc(sizeof(TSRule));
+  rule->type = TSRuleTypeEnd;
   return rule;
 }
 
-void ip_rule_free(IPRule *rule)
+void ts_rule_free(TSRule *rule)
 {
   free(rule);
 }
 
 // accessors
-IPSymbolId ip_rule_id(IPRule *rule)
+TSSymbolId ts_rule_id(TSRule *rule)
 {
   switch (rule->type) {
-    case IPRuleTypeSym:
+    case TSRuleTypeSym:
       return rule->impl.symbol_id;
     default:
       return 0;
   }
 }
 
-IPRule * ip_rule_left(IPRule *rule)
+TSRule * ts_rule_left(TSRule *rule)
 {
   switch (rule->type) {
-    case IPRuleTypeChoice:
-    case IPRuleTypeSeq:
+    case TSRuleTypeChoice:
+    case TSRuleTypeSeq:
       return rule->impl.binary.left;
     default:
       return 0;
   }
 }
 
-IPRule * ip_rule_right(IPRule *rule)
+TSRule * ts_rule_right(TSRule *rule)
 {
   switch (rule->type) {
-    case IPRuleTypeChoice:
-    case IPRuleTypeSeq:
+    case TSRuleTypeChoice:
+    case TSRuleTypeSeq:
       return rule->impl.binary.right;
     default:
       return 0;
   }
 }
 
-IPTransition * ip_transition_new(IPSymbolId symbol_id, IPRule *rule)
+TSTransition * ts_transition_new(TSSymbolId symbol_id, TSRule *rule)
 {
-  IPTransition *transition = malloc(sizeof(*transition));
+  TSTransition *transition = malloc(sizeof(*transition));
   check_mem(transition);
   transition->symbol_id = symbol_id;
   transition->rule = rule;
@@ -85,35 +95,35 @@ error:
   return NULL;
 }
 
-IPArray * ip_rule_transitions(IPRule *rule)
+TSArray * ts_rule_transitions(TSRule *rule)
 {
-  IPArray *result = NULL;
+  TSArray *result = NULL;
 
   switch (rule->type) {
-    case IPRuleTypeSym:
+    case TSRuleTypeSym:
       {
-        result = ip_array_new(20);
+        result = ts_array_new(20);
         check_mem(result);
-        IPTransition *transition = ip_transition_new(ip_rule_id(rule), ip_rule_new_end());
-        ip_array_push(result, transition);
+        TSTransition *transition = ts_transition_new(ts_rule_id(rule), ts_rule_new_end());
+        ts_array_push(result, transition);
         break;
       }
-    case IPRuleTypeChoice:
+    case TSRuleTypeChoice:
       {
         // Start with the left transitions.
-        IPArray *left_transitions = ip_rule_transitions(ip_rule_left(rule));
-        IPArray *right_transitions = ip_rule_transitions(ip_rule_right(rule));
-        result = ip_array_copy(left_transitions);
+        TSArray *left_transitions = ts_rule_transitions(ts_rule_left(rule));
+        TSArray *right_transitions = ts_rule_transitions(ts_rule_right(rule));
+        result = ts_array_copy(left_transitions);
 
         // For each right transition,
-        ip_array_each(right_transitions, IPTransition, transition, i) {
-          IPSymbolId symbol_id = transition->symbol_id;
-          IPRule *rule = transition->rule;
+        ts_array_each(right_transitions, TSTransition, transition, i) {
+          TSSymbolId symbol_id = transition->symbol_id;
+          TSRule *rule = transition->rule;
 
           // try to find the left transition for the same symbol.
           int left_index = -1;
-          IPRule *left_rule = NULL;
-          ip_array_each(left_transitions, IPTransition, left_transition, j) {
+          TSRule *left_rule = NULL;
+          ts_array_each(left_transitions, TSTransition, left_transition, j) {
             if (left_transition->symbol_id == symbol_id) {
               left_index = j;
               left_rule = left_transition->rule;
@@ -124,38 +134,38 @@ IPArray * ip_rule_transitions(IPRule *rule)
           // If there is one, replace it with a choice between the left
           // and right transitions' rules. Otherwise, add a new transition.
           if (left_rule) {
-            IPRule *choice = ip_rule_new_choice(left_rule, rule);
-            IPTransition *t = ip_transition_new(symbol_id, choice);
-            ip_array_set(result, left_index, t);
+            TSRule *choice = ts_rule_new_choice(left_rule, rule);
+            TSTransition *t = ts_transition_new(symbol_id, choice);
+            ts_array_set(result, left_index, t);
           } else {
-            IPTransition *t = ip_transition_new(symbol_id, rule);
-            ip_array_push(result, t);
+            TSTransition *t = ts_transition_new(symbol_id, rule);
+            ts_array_push(result, t);
           }
         }
 
         break;
       }
-    case IPRuleTypeSeq:
+    case TSRuleTypeSeq:
       {
         // Start with the left transitions.
-        IPArray *left_transitions = ip_rule_transitions(ip_rule_left(rule));
-        IPRule *right_rule = ip_rule_right(rule);
-        result = ip_array_copy(left_transitions);
+        TSArray *left_transitions = ts_rule_transitions(ts_rule_left(rule));
+        TSRule *right_rule = ts_rule_right(rule);
+        result = ts_array_copy(left_transitions);
 
         // For each one, replace the rule with a sequence containing itself
         // and the right side of the sequence.
-        ip_array_each(left_transitions, IPTransition, transition, i) {
-          IPRule *rule = transition->rule;
-          IPRule *new_rule = (rule->type == IPRuleTypeEnd) ?
+        ts_array_each(left_transitions, TSTransition, transition, i) {
+          TSRule *rule = transition->rule;
+          TSRule *new_rule = (rule->type == TSRuleTypeEnd) ?
             right_rule:
-            ip_rule_new_seq(rule, right_rule);
+            ts_rule_new_seq(rule, right_rule);
           transition->rule = new_rule;
         }
         break;
       }
-    case IPRuleTypeEnd:
+    case TSRuleTypeEnd:
       {
-        result = ip_array_new(0);
+        result = ts_array_new(0);
         break;
       }
   }
@@ -166,17 +176,17 @@ error:
 }
 
 // comparison
-int ip_rule_eq(IPRule *left, IPRule *right)
+int ts_rule_eq(TSRule *left, TSRule *right)
 {
   if (left->type != right->type) return 0;
   switch (left->type) {
-    case IPRuleTypeSym:
-      return (ip_rule_id(left) == ip_rule_id(right));
-    case IPRuleTypeEnd:
+    case TSRuleTypeSym:
+      return (ts_rule_id(left) == ts_rule_id(right));
+    case TSRuleTypeEnd:
       return 1;
     default:
       return (
-        ip_rule_eq(ip_rule_left(left), ip_rule_left(right)) &&
-        ip_rule_eq(ip_rule_right(left), ip_rule_right(right)));
+        ts_rule_eq(ts_rule_left(left), ts_rule_left(right)) &&
+        ts_rule_eq(ts_rule_right(left), ts_rule_right(right)));
   }
 }

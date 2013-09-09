@@ -1,9 +1,13 @@
-#include "token.h"
-#include "stdlib.h"
+#include "tree-sitter.h"
+#include "private.h"
 
-IPToken * ip_token_new(char *pattern)
+struct TSToken {
+  char *pattern;
+};
+
+TSToken * ts_token_new(char *pattern)
 {
-  IPToken *result = malloc(sizeof(IPToken));
+  TSToken *result = malloc(sizeof(TSToken));
   result->pattern = pattern;
   return result;
 }

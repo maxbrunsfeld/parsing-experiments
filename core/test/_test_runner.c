@@ -6,9 +6,9 @@ int main()
 {
   printf("\n--- Running tests ---\n\n");
 
-  RUN_TESTS(IPArray);
-  RUN_TESTS(IPRule);
-  RUN_TESTS(IPGrammar);
+  RUN_TESTS(TSArray);
+  RUN_TESTS(TSRule);
+  RUN_TESTS(TSGrammar);
 
   printf("\n\n--- Tests passed ---\n\n");
 }
