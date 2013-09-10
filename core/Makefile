@@ -1,6 +1,6 @@
 .PHONY: clean test valgrind
 
-LIB_NAME=tree-sitter
+LIB_NAME=tree_sitter
 LIB_FILE=lib$(LIB_NAME).so
 HEADER=src/$(LIB_NAME).h
 SOURCE_FILES=$(wildcard src/*.c)

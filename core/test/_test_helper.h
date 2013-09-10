@@ -1,7 +1,7 @@
 #ifndef __HELPERS_H__
 #define __HELPERS_H__
 
-#include "tree-sitter.h"
+#include "tree_sitter.h"
 #include "bantam_bdd.h"
 #include "assert.h"
 

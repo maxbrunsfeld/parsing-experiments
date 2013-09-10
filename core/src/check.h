@@ -1,5 +1,5 @@
-#ifndef __check_h__
-#define __check_h__
+#ifndef __CHECK_H__
+#define __CHECK_H__
 
 #include "stdio.h"
 #include <errno.h>
