@@ -1,10 +1,10 @@
-#include "rb_tree_sitter.h"
+#include "tree_sitter_rb.h"
 
 VALUE mTreeSitter;
 
-void Init_tree_sitter()
+void Init_tree_sitter_rb()
 {
   mTreeSitter = rb_const_get(rb_cObject, rb_intern("TreeSitter"));
   Init_document(mTreeSitter);
-  Init_grammar(mTreeSitter);
+  Init_compiler(mTreeSitter);
 }

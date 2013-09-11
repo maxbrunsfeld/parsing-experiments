@@ -1,7 +1,8 @@
 GEM_NAME = "tree_sitter"
 LIB_DIR = "lib/#{GEM_NAME}"
 EXT_DIR = "ext/#{GEM_NAME}"
-DLL_FILE = "#{GEM_NAME}.bundle"
+SO_FILE = "#{GEM_NAME}_rb.bundle"
+ROOT = File.expand_path("..", __FILE__)
 
 task :default => [:build, :spec]
 
@@ -10,19 +11,24 @@ task :spec do
   sh "rspec"
 end
 
+desc "Run specs under valgrind"
+task :valgrind do
+  sh "valgrind ruby -S rspec"
+end
+
 desc "Compile C code"
 task :build => :makefile do
   sh "make all"
-  sh "mv #{DLL_FILE} #{LIB_DIR}"
+  sh "mv #{SO_FILE} #{LIB_DIR}"
 end
 
 task :makefile do
-  sh "ruby #{EXT_DIR}/extconf.rb --with-tree-sitter-lib=../core --with-tree-sitter-include=../core/src"
+  sh "ruby #{EXT_DIR}/extconf.rb"
 end
 
 desc "Remove compiled files"
 task :clean do
-  sh "rm -f Makefile *.o #{LIB_DIR}/#{DLL_FILE} *.log"
+  Dir.glob(["*.o", "*.log", "**/#{SO_FILE}"]) { |f| File.delete(f) }
 end
 
 desc "Open console with library loaded"

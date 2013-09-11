@@ -1,7 +1,13 @@
-#include "rb_tree_sitter.h"
+#include "tree_sitter_rb.h"
 
 VALUE cDocument;
 VALUE cNode;
+
+static VALUE wrap_node(TSNode *node)
+{
+  VALUE name = ID2SYM(rb_intern(ts_node_name(node)));
+  return rb_funcall(cNode, rb_intern("new"), 1, name, NULL);
+}
 
 static VALUE wrap_document(TSDocument *document)
 {
@@ -13,12 +19,6 @@ static TSDocument * unwrap_document(VALUE self)
   TSDocument *document;
   Data_Get_Struct(self, TSDocument, document);
   return document;
-}
-
-static VALUE wrap_node(TSNode *node)
-{
-  VALUE name = ID2SYM(rb_intern(ts_node_name(node)));
-  return rb_funcall(cNode, rb_intern("new"), 1, name, NULL);
 }
 
 static VALUE document_new(VALUE class, VALUE grammar)

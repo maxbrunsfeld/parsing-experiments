@@ -81,7 +81,7 @@ CCDLFLAGS = -fno-common
 CFLAGS   = $(CCDLFLAGS)  -O3 -Wno-error=shorten-64-to-32  -pipe $(ARCH_FLAG)
 INCFLAGS = -I. -I$(arch_hdrdir) -I$(hdrdir)/ruby/backward -I$(hdrdir) -I$(srcdir)
 DEFS     = 
-CPPFLAGS =  -I../core/src -I'/Users/maxbrunsfeld/.rbenv/versions/2.0.0-p247/include'  -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE -D_DARWIN_UNLIMITED_SELECT -D_REENTRANT $(DEFS) $(cppflags)
+CPPFLAGS =  -I/Users/maxbrunsfeld/workspace/tree_sitter/ruby/../core/src -I'/Users/maxbrunsfeld/.rbenv/versions/2.0.0-p247/include'  -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE -D_DARWIN_UNLIMITED_SELECT -D_REENTRANT $(DEFS) $(cppflags)
 CXXFLAGS = $(CCDLFLAGS) $(cxxflags) $(ARCH_FLAG)
 ldflags  = -L. -L'/Users/maxbrunsfeld/.rbenv/versions/2.0.0-p247/lib' 
 dldflags = -Wl,-undefined,dynamic_lookup -Wl,-multiply_defined,suppress 
@@ -120,8 +120,8 @@ TOUCH = exit >
 
 preload = 
 
-libpath = . $(libdir) ../core
-LIBPATH =  -L. -L$(libdir) -L../core
+libpath = . $(libdir) /Users/maxbrunsfeld/workspace/tree_sitter/ruby/../core
+LIBPATH =  -L. -L$(libdir) -L/Users/maxbrunsfeld/workspace/tree_sitter/ruby/../core
 DEFFILE = 
 
 CLEANFILES = mkmf.log
@@ -130,15 +130,15 @@ DISTCLEANDIRS =
 
 extout = 
 extout_prefix = 
-target_prefix = /tree_sitter
+target_prefix = 
 LOCAL_LIBS = 
-LIBS =  -ltree-sitter  -lpthread -ldl -lobjc 
-ORIG_SRCS = rb_document.c rb_grammar.c rb_tree_sitter.c
+LIBS =  -ltree_sitter  -lpthread -ldl -lobjc 
+ORIG_SRCS = compiler.c document.c tree_sitter_rb.c
 SRCS = $(ORIG_SRCS) 
-OBJS = rb_document.o rb_grammar.o rb_tree_sitter.o
-HDRS = $(srcdir)/rb_tree_sitter.h
-TARGET = tree_sitter
-TARGET_NAME = tree_sitter
+OBJS = compiler.o document.o tree_sitter_rb.o
+HDRS = $(srcdir)/tree_sitter_rb.h
+TARGET = tree_sitter_rb
+TARGET_NAME = tree_sitter_rb
 TARGET_ENTRY = Init_$(TARGET_NAME)
 DLLIB = $(TARGET).bundle
 EXTSTATIC = 
@@ -188,7 +188,7 @@ install-rb-default: pre-install-rb-default
 pre-install-rb: Makefile
 pre-install-rb-default: Makefile
 pre-install-rb-default:
-	$(ECHO) installing default tree_sitter libraries
+	$(ECHO) installing default tree_sitter_rb libraries
 ./.RUBYARCHDIR.time:
 	$(Q) $(MAKEDIRS) $(RUBYARCHDIR)
 	$(Q) $(TOUCH) $@
@@ -228,7 +228,7 @@ site-install-rb: install-rb
 	$(Q) $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG)$@ -c $<
 
 $(DLLIB): $(OBJS) Makefile
-	$(ECHO) linking shared-object tree_sitter/$(DLLIB)
+	$(ECHO) linking shared-object $(DLLIB)
 	-$(Q)$(RM) $(@)
 	$(Q) $(LDSHARED) -o $@ $(OBJS) $(LIBPATH) $(DLDFLAGS) $(LOCAL_LIBS) $(LIBS)
 	$(Q) test -z '$(RUBY_CODESIGN)' || codesign -s '$(RUBY_CODESIGN)' -f $@

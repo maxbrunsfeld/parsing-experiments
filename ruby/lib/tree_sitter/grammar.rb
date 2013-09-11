@@ -9,11 +9,18 @@ module TreeSitter
     def initialize(tokens, rules)
       @tokens = tokens
       @rules = rules
-      @start_rule_name = rules.keys.first
     end
 
     def start_rule
-      @rules[@start_rule_name]
+      @rules.values.first
+    end
+
+    def internal_representation
+      {
+        :rules => rules.values,
+        :tokens => tokens.values,
+        :symbol_names => rules.keys + tokens.keys
+      }
     end
 
     private
