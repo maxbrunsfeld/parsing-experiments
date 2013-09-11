@@ -1,5 +1,6 @@
 *.dSYM
 *.so
+*.dylib
 *.o
 *.a
 *.out

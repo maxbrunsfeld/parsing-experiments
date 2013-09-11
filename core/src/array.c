@@ -1,4 +1,4 @@
-#include "tree_sitter.h"
+#include "compiler.h"
 #include "private.h"
 
 #define EXPAND_RATE 300

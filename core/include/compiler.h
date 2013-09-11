@@ -1,13 +1,11 @@
-#ifndef __TREE_SITTER_H__
-#define __TREE_SITTER_H__
+#ifndef __TREE_SITTER_COMPILER_H__
+#define __TREE_SITTER_COMPILER_H__
 
-#include <stdlib.h>
+#include "runtime.h"
 
 /* --- Types --- */
 typedef struct TSArray TSArray;
-typedef struct TSDocument TSDocument;
 typedef struct TSGrammar TSGrammar;
-typedef struct TSNode TSNode;
 typedef struct TSRule TSRule;
 typedef struct TSToken TSToken;
 typedef int TSSymbolId;
@@ -38,21 +36,6 @@ void ts_array_clear(TSArray *array);
     int index_name = 0; \
     element_name; \
     (element_name = (++index_name < __max_ ## index_name) ? ts_array_get(array, index_name) : NULL))
-
-/* --- Node --- */
-TSNode * ts_node_new();
-void ts_node_free(TSNode *node);
-char * ts_node_name(TSNode *node);
-void ts_node_set_name(TSNode *node, char *name);
-
-/* --- Document --- */
-TSDocument * ts_document_new();
-void ts_document_free(TSDocument *doc);
-
-TSNode * ts_document_tree(TSDocument *doc);
-char * ts_document_text(TSDocument *doc);
-void ts_document_set_text(TSDocument *doc, char *text);
-void ts_document_parse(TSDocument *doc);
 
 /* --- Rule --- */
 typedef struct TSTransition {

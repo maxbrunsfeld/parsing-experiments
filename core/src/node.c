@@ -1,4 +1,4 @@
-#include "tree_sitter.h"
+#include "runtime.h"
 #include "private.h"
 
 struct TSNode {
