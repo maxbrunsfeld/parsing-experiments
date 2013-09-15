@@ -1,5 +1,6 @@
 #include "runtime.h"
-#include "private.h"
+#include "check.h"
+#include <stdlib.h>
 
 struct TSDocument {
   char *text;

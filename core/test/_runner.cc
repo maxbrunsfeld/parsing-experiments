@@ -1,6 +1,6 @@
 #include "rule_test.c"
 #include "array_test.c"
-#include "grammar_test.c"
+#include "compiler_test.c"
 
 int main()
 {
@@ -8,7 +8,7 @@ int main()
 
   RUN_TESTS(TSArray);
   RUN_TESTS(TSRule);
-  RUN_TESTS(TSGrammar);
+  RUN_TESTS(TSCompiler);
 
   printf("\n\n--- Tests passed ---\n\n");
 }

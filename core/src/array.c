@@ -1,5 +1,5 @@
 #include "compiler.h"
-#include "private.h"
+#include "check.h"
 
 #define EXPAND_RATE 300
 

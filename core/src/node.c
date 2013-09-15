@@ -1,5 +1,5 @@
 #include "runtime.h"
-#include "private.h"
+#include <stdlib.h>
 
 struct TSNode {
   char *name;

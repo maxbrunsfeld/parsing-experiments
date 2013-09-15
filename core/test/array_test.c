@@ -1,4 +1,4 @@
-#include "_test_helper.h"
+#include "_helper.h"
 
 TEST(TSArray)
 {
@@ -7,11 +7,11 @@ TEST(TSArray)
 
   BEFORE_EACH {
     array = ts_array_new(4);
-  }
+  };
 
   AFTER_EACH {
     ts_array_free(array);
-  }
+  };
 
   IT("can get and set values") {
     for (int i = 0; i < 4; i++) {
@@ -24,7 +24,7 @@ TEST(TSArray)
 
     int result = ts_array_set(array, 4, values);
     assert(result != 0);
-  }
+  };
 
   IT("can be copied") {
     for (int i = 0; i < 4; i++)
@@ -36,7 +36,7 @@ TEST(TSArray)
     ts_array_each(array, char, value, i) {
       assert(ts_array_get(copy, i) == value);
     }
-  }
+  };
 }
 
 END_TEST

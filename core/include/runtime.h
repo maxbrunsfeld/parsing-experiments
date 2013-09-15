@@ -1,6 +1,10 @@
 #ifndef __TREE_SITTER_RUNTIME_H__
 #define __TREE_SITTER_RUNTIME_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* --- Types --- */
 typedef struct TSDocument TSDocument;
 typedef struct TSNode TSNode;
@@ -19,5 +23,9 @@ TSNode * ts_document_tree(TSDocument *doc);
 char * ts_document_text(TSDocument *doc);
 void ts_document_set_text(TSDocument *doc, char *text);
 void ts_document_parse(TSDocument *doc);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

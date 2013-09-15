@@ -1,11 +1,7 @@
 #include "compiler.h"
-#include "private.h"
+#include "grammar.h"
 
-struct TSToken {
-  char *pattern;
-};
-
-TSToken * ts_token_new(char *pattern)
+TSToken * ts_token_new(const char *pattern)
 {
   TSToken *result = malloc(sizeof(TSToken));
   result->pattern = pattern;

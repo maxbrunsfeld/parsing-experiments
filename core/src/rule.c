@@ -1,16 +1,7 @@
 #include "compiler.h"
-#include "private.h"
-
-struct TSRule {
-  TSRuleType type;
-  union {
-    TSSymbolId symbol_id;
-    struct {
-      struct TSRule *left;
-      struct TSRule *right;
-    } binary;
-  } impl;
-};
+#include "grammar.h"
+#include <stdlib.h>
+#include "check.h"
 
 // constructors
 TSRule * ts_rule_new_sym(TSSymbolId id)

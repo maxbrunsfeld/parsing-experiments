@@ -20,14 +20,14 @@ MANDIR    ?= $(PREFIX)/share/man/man1
 include externals/chibi-scheme/Makefile.detect
 
 ### library configuration ###
-DIR        = $(shell pwd)
-LIB_NAME   = tree_sitter
-TEST_FILES = test/_test_runner.c
-TEST_BIN   = test/run.out
-HEADERS    = $(wildcard include/*.h)
-SOURCES    = $(wildcard src/*.c)
-LIB_FILE   = lib$(LIB_NAME)$(SO)
-OBJECTS    = $(foreach file, $(SOURCES), $(basename $(file)).o)
+LIB_NAME    = tree_sitter
+DIR         = $(shell pwd)
+HEADERS     = $(wildcard include/*.h)
+SOURCES     = $(wildcard src/*.c)
+TESTS       = $(wildcard test/*.c)
+OBJECTS     = $(foreach file, $(SOURCES), $(basename $(file)).o)
+LIB_FILE    = lib$(LIB_NAME)$(SO)
+TEST_BIN    = test/run.out
 
 ### build configuration ###
 CFLAGS ?= -Wall -std=c99 -g -m64
@@ -43,13 +43,14 @@ src/%.o: src/%.c
 
 install_dev: $(LIB_FILE)
 	$(RM) $(INCDIR)/$(LIB_NAME);   $(SYMLINK) $(DIR)/include $(INCDIR)/$(LIB_NAME)
+	$(RM) $(MODDIR)/$(LIB_NAME);   $(SYMLINK) $(DIR)/share $(MODDIR)/$(LIB_NAME)
 	$(RM) $(SOLIBDIR)/$(LIB_FILE); $(SYMLINK) $(DIR)/$(LIB_FILE) $(SOLIBDIR)/$(LIB_FILE)
 
 test: $(TEST_BIN)
 	./$<
 
-$(TEST_BIN): $(LIB_FILE) $(TEST_FILES)
-	$(CC) -fnested-functions -I./include -Itest -Iexternals/bantam-bdd -L. -l$(LIB_NAME) $(CFLAGS) $(TEST_FILES) -o $@
+$(TEST_BIN): $(LIB_FILE) $(TESTS)
+	c++ -std=c++11 -stdlib=libc++ -I./include -Itest -Iexternals/bantam-bdd -L. -l$(LIB_NAME) test/_runner.cc -o $@
 
 valgrind: $(TEST_BIN)
 	valgrind --track-origins=yes $(TEST_BIN)

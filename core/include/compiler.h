@@ -3,7 +3,12 @@
 
 #include "runtime.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* --- Types --- */
+typedef struct TSCompiler TSCompiler;
 typedef struct TSArray TSArray;
 typedef struct TSGrammar TSGrammar;
 typedef struct TSRule TSRule;
@@ -30,12 +35,12 @@ int ts_array_length(TSArray *array);
 void ts_array_clear(TSArray *array);
 
 #define ts_array_each(array, element_type, element_name, index_name) \
-  element_type *element_name = ts_array_get(array, 0); \
+  element_type *element_name = (element_type *)ts_array_get(array, 0); \
   int __max_ ## index_name = ts_array_length(array); \
   for ( \
     int index_name = 0; \
     element_name; \
-    (element_name = (++index_name < __max_ ## index_name) ? ts_array_get(array, index_name) : NULL))
+    (element_name = (++index_name < __max_ ## index_name) ? (element_type *)ts_array_get(array, index_name) : NULL))
 
 /* --- Rule --- */
 typedef struct TSTransition {
@@ -47,7 +52,7 @@ TSRule * ts_rule_new_sym(TSSymbolId id);
 TSRule * ts_rule_new_choice(TSRule *left, TSRule *right);
 TSRule * ts_rule_new_seq(TSRule *left, TSRule *right);
 TSRule * ts_rule_new_end();
-void ts_rule_free();
+void ts_rule_free(TSRule *rule);
 
 TSSymbolId ts_rule_id(TSRule *rule);
 TSRule * ts_rule_left(TSRule *rule);
@@ -56,7 +61,7 @@ TSArray * ts_rule_transitions(TSRule *rule);
 int ts_rule_eq(TSRule *rule1, TSRule *rule2);
 
 /* --- Token --- */
-TSToken * ts_token_new(char *pattern);
+TSToken * ts_token_new(const char *pattern);
 
 /* --- Grammar --- */
 TSGrammar * ts_grammar_new(
@@ -64,8 +69,17 @@ TSGrammar * ts_grammar_new(
   int token_count,
   TSRule **rules,
   TSToken **tokens,
-  char **symbol_names);
-void ts_grammar_free();
+  const char **symbol_names);
+void ts_grammar_free(TSGrammar *grammar);
 void ts_grammar_compile();
+
+/* --- Compiler --- */
+TSCompiler * ts_compiler_new(TSGrammar *grammar);
+char * ts_compiler_c_code(TSCompiler *compiler);
+void ts_compiler_free(TSCompiler *compiler);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
