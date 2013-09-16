@@ -43,9 +43,9 @@ TEST(TSRule) {
       transitions = ts_rule_transitions(rule);
       assert(ts_array_length(transitions) == 1);
 
-      /* transition = ts_array_get(transitions, 0); */
-      /* assert(transition->symbol_id == 11); */
-      /* assert(ts_rule_eq(transition->rule, ts_rule_new_end())); */
+      transition = (TSTransition *)ts_array_get(transitions, 0);
+      assert(transition->symbol_id == 11);
+      assert(ts_rule_eq(transition->rule, ts_rule_new_end()));
     }
 
     IT("works for simple choices") {
@@ -53,13 +53,13 @@ TEST(TSRule) {
       transitions = ts_rule_transitions(rule);
       assert(ts_array_length(transitions) == 2);
 
-      /* transition = ts_array_get(transitions, 0); */
-      /* assert(transition->symbol_id == 11); */
-      /* assert(ts_rule_eq(transition->rule, ts_rule_new_end())); */
+      transition = (TSTransition *)ts_array_get(transitions, 0);
+      assert(transition->symbol_id == 11);
+      assert(ts_rule_eq(transition->rule, ts_rule_new_end()));
 
-      /* transition = ts_array_get(transitions, 1); */
-      /* assert(transition->symbol_id == 12); */
-      /* assert(ts_rule_eq(transition->rule, ts_rule_new_end())); */
+      transition = (TSTransition *)ts_array_get(transitions, 1);
+      assert(transition->symbol_id == 12);
+      assert(ts_rule_eq(transition->rule, ts_rule_new_end()));
     }
 
     IT("works for simple sequences") {
@@ -67,8 +67,8 @@ TEST(TSRule) {
       transitions = ts_rule_transitions(rule);
       assert(ts_array_length(transitions) == 1);
 
-      /* transition = ts_array_get(transitions, 0); */
-      /* assert(ts_rule_eq(transition->rule, SYM(12))); */
+      transition = (TSTransition *)ts_array_get(transitions, 0);
+      assert(ts_rule_eq(transition->rule, SYM(12)));
     }
   }
 }
