@@ -42,6 +42,7 @@ TEST(TSCompiler)
     };
 
     IT("works") {
+      printf("==> code %s \n", code);
       assert(strcmp(code, "some c code") == 0);
     };
   }

@@ -1,4 +1,4 @@
-.PHONY: all clean install install_dev test valgrind
+.PHONY: all clean install install-dev test test-c test-scm valgrind
 
 ### install configuration ###
 CC        = gcc
@@ -23,9 +23,9 @@ include externals/chibi-scheme/Makefile.detect
 LIB_NAME    = tree_sitter
 DIR         = $(shell pwd)
 HEADERS     = $(wildcard include/*.h)
-SOURCES     = $(wildcard src/*.c)
-TESTS       = $(wildcard test/*.c)
-OBJECTS     = $(foreach file, $(SOURCES), $(basename $(file)).o)
+C_SOURCES   = $(wildcard src/c/*.c)
+C_TESTS     = $(wildcard test/c/*.c)
+OBJECTS     = $(foreach file, $(C_SOURCES), $(basename $(file)).o)
 LIB_FILE    = lib$(LIB_NAME)$(SO)
 TEST_BIN    = test/run.out
 
@@ -38,22 +38,28 @@ all: $(LIB_FILE)
 $(LIB_FILE): $(OBJECTS) $(HEADERS)
 	$(CC) -lchibi-scheme $(OBJECTS) $(CLIBFLAGS) -o $@
 
-src/%.o: src/%.c
+src/c/%.o: src/c/%.c
 	$(CC) $(CFLAGS) -Iinclude -c $< -o $@
 
-install_dev: $(LIB_FILE)
+install-dev: $(LIB_FILE)
 	$(RM) $(INCDIR)/$(LIB_NAME);   $(SYMLINK) $(DIR)/include $(INCDIR)/$(LIB_NAME)
-	$(RM) $(MODDIR)/$(LIB_NAME);   $(SYMLINK) $(DIR)/share $(MODDIR)/$(LIB_NAME)
+	$(RM) $(MODDIR)/$(LIB_NAME);   $(SYMLINK) $(DIR)/src/scm $(MODDIR)/$(LIB_NAME)
 	$(RM) $(SOLIBDIR)/$(LIB_FILE); $(SYMLINK) $(DIR)/$(LIB_FILE) $(SOLIBDIR)/$(LIB_FILE)
 
-test: $(TEST_BIN)
+test-c: $(TEST_BIN)
 	./$<
 
-$(TEST_BIN): $(LIB_FILE) $(TESTS)
-	c++ -std=c++11 -stdlib=libc++ -I./include -Itest -Iexternals/bantam-bdd -L. -l$(LIB_NAME) test/_runner.cc -o $@
+test-scm:
+	chibi-scheme -Isrc/scm test/scm/grammar_test.scm
+
+$(TEST_BIN): $(LIB_FILE) $(C_TESTS)
+	c++ -std=c++11 -stdlib=libc++ -I./include -Itest/c -Iexternals/bantam-bdd -L. -l$(LIB_NAME) test/c/_runner.cc -o $@
 
 valgrind: $(TEST_BIN)
 	valgrind --track-origins=yes $(TEST_BIN)
+
+repl:
+	chibi-scheme -Isrc/scm -mchibi.repl -mtree-sitter -e'(repl)'
 
 clean:
 	$(RM) $(OBJECTS) $(LIB_FILE)
