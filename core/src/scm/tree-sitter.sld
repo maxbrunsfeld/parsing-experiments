@@ -1,5 +1,7 @@
 (define-library (tree-sitter)
   (export
+
+    ;; grammar
     make-grammar
     make-choice-rule
     make-seq-rule
@@ -11,11 +13,18 @@
     grammar-rules
     grammar-tokens
     grammar->c-code
-    list->rule
-    rule->list
     list->grammar
-    grammar->list)
+    grammar->list
+
+    ;; code-gen
+    c-include
+
+    ;; state-machine
+    make-state-machine)
+
   (import (chibi))
   (include
     "grammar.scm"
-    "compile.scm"))
+    "compile.scm"
+    "state-machine.scm"
+    "code-gen.scm"))

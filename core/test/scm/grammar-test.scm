@@ -1,10 +1,3 @@
-(import (chibi))
-(import (chibi test))
-(import (srfi 1))
-(import (tree-sitter))
-
-(define (it a b) (test-assert a b))
-
 (test-group "reading a grammar"
   (let*
     ((serial-grammar

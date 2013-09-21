@@ -46,11 +46,13 @@ install-dev: $(LIB_FILE)
 	$(RM) $(MODDIR)/$(LIB_NAME);   $(SYMLINK) $(DIR)/src/scm $(MODDIR)/$(LIB_NAME)
 	$(RM) $(SOLIBDIR)/$(LIB_FILE); $(SYMLINK) $(DIR)/$(LIB_FILE) $(SOLIBDIR)/$(LIB_FILE)
 
+test: test-c test-scm
+
 test-c: $(TEST_BIN)
 	./$<
 
 test-scm:
-	chibi-scheme -Isrc/scm test/scm/grammar_test.scm
+	chibi-scheme -Isrc/scm -Itest/scm -mtree-sitter-test
 
 $(TEST_BIN): $(LIB_FILE) $(C_TESTS)
 	c++ -std=c++11 -stdlib=libc++ -I./include -Itest/c -Iexternals/bantam-bdd -L. -l$(LIB_NAME) test/c/_runner.cc -o $@
