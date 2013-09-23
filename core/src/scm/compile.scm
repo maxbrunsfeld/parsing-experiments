@@ -8,7 +8,7 @@
 ;; compilation
 
 (define (grammar->state-machine g)
-  (make-state-machine 1 2))
+  (make-fsm 1 2))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; code generation

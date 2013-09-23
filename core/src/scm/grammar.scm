@@ -38,14 +38,26 @@
   pattern-token?
   (str pattern-token-value))
 
+(define-record-type char-token
+  (make-char-token char)
+  char-token?
+  (char char-token-value))
+
+(define-record-type char-class-token
+  (make-char-class-token char-class)
+  char-class-tokens?
+  (char-class char-class-token-value))
+
+(define rule-end 'grammar-rule-end)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Reading
 
 (define (list->grammar l)
   (let
-    ((name (get-alist-value 'NAME l))
-     (rules (map-alist-values list->rule (get-alist-value 'RULES l)))
-     (tokens (map-alist-values list->token (get-alist-value 'TOKENS l))))
+    ((name (alist-get-value 'NAME l))
+     (rules (alist-map-values list->rule (alist-get-value 'RULES l)))
+     (tokens (alist-map-values list->token (alist-get-value 'TOKENS l))))
     (make-grammar name rules tokens)))
 
 (define (list->rule l)
@@ -66,15 +78,31 @@
     (make-string-token l)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Transitions
+
+(define (rule-transitions rule)
+  (cond
+    ((sym-rule? rule)
+     (list (list rule rule-end)))
+    ((seq-rule? rule)
+     (list (list (seq-rule-left rule) (seq-rule-right rule))))
+    ((choice-rule? rule)
+     (alist-merge
+       (rule-transitions (choice-rule-left rule))
+       (rule-transitions (choice-rule-right rule))
+       make-choice-rule))
+    ))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Printing
 
 (define (grammar->list g)
   (list
     (list 'NAME (grammar-name g))
     (list 'RULES
-          (map-alist-values rule->list (grammar-rules g)))
+          (alist-map-values rule->list (grammar-rules g)))
     (list 'TOKENS
-          (map-alist-values token->list (grammar-tokens g)))))
+          (alist-map-values token->list (grammar-tokens g)))))
 
 (define (rule->list r)
   (cond
@@ -99,8 +127,24 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helpers
 
-(define (get-alist-value key alist)
-  (cadr (assq key alist)))
-(define (map-alist-values f alist)
-  (map (lambda (entry) (list (car entry) (f (cadr entry)))) alist))
+(define (display* name x)
+  (display name)
+  (display x) (newline))
 
+(define (alist-merge l1 l2 merge-proc)
+  (let ((result (alist-copy l1)))
+    (for-each
+      (lambda (entry)
+        (let* ((key (car entry))
+               (prev-entry (assoc key result)))
+          (if prev-entry
+            (set-cdr! prev-entry (list (merge-proc (cadr prev-entry) (cadr entry))))
+            (append! result (list entry)))))
+      l2)
+    result))
+
+(define (alist-get-value key alist)
+  (cadr (assq key alist)))
+
+(define (alist-map-values f alist)
+  (map (lambda (entry) (list (car entry) (f (cadr entry)))) alist))

@@ -8,19 +8,26 @@
     make-sym-rule
     make-string-token
     make-pattern-token
+    rule-end
     grammar?
     grammar-name
     grammar-rules
     grammar-tokens
     grammar->c-code
     list->grammar
+    list->rule
     grammar->list
+    rule->list
+    rule-transitions
 
     ;; code-gen
     c-include
 
     ;; state-machine
-    make-state-machine)
+    make-fsm
+
+    ;; helpers
+    alist-merge)
 
   (import (chibi))
   (include

@@ -3,10 +3,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Types
 
-(define-record-type state-machine
-  (make-state-machine states transitions)
-  state-machine?
-  (states
-    state-machine-states state-machine-set-states!)
-  (transitions
-    state-machine-transitions state-machine-set-transitions!))
+(define-record-type fsm
+  (make-fsm states transitions)
+  fsm?
+  (states fsm-states fsm-set-states!)
+  (transitions fsm-transitions fsm-set-transitions!))
+
+(define-record-type fsm-state
+  (make-fsm-state id value)
+  fsm-state?
+  (id fsm-state-id)
+  (value fsm-state-value))
