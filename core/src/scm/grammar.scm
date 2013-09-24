@@ -83,9 +83,11 @@
 (define (rule-transitions rule)
   (cond
     ((sym-rule? rule)
-     (list (list rule rule-end)))
+     (alist-new rule rule-end))
+    ((char-token? rule)
+     (alist-new rule rule-end))
     ((seq-rule? rule)
-     (list (list (seq-rule-left rule) (seq-rule-right rule))))
+     (alist-new (seq-rule-left rule) (seq-rule-right rule)))
     ((choice-rule? rule)
      (alist-merge
        (rule-transitions (choice-rule-left rule))
@@ -148,3 +150,6 @@
 
 (define (alist-map-values f alist)
   (map (lambda (entry) (list (car entry) (f (cadr entry)))) alist))
+
+(define (alist-new k v)
+  (list (list k v)))

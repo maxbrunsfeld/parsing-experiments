@@ -8,6 +8,8 @@
     make-sym-rule
     make-string-token
     make-pattern-token
+    make-char-token
+    make-char-class-token
     rule-end
     grammar?
     grammar-name
@@ -20,11 +22,19 @@
     rule->list
     rule-transitions
 
+    ;; compiler
+    tokens->state-machine
+
     ;; code-gen
     c-include
 
     ;; state-machine
-    make-fsm
+    make-lr-state
+    make-lr-item
+    lr-state?
+    make-lr-state
+    lr-state?
+    lr-state-items
 
     ;; helpers
     alist-merge)
@@ -33,5 +43,6 @@
   (include
     "grammar.scm"
     "compile.scm"
-    "state-machine.scm"
-    "code-gen.scm"))
+    "lr.scm"
+    "code-gen.scm"
+    ))

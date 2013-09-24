@@ -4,7 +4,6 @@ TODO
 * Create lexical analyzer from tokens
 
   * Compile tokens to FSA
-    * Determine how to represent FSA.
     * Convert string tokens to sequences of characters
       - When grammar is serialized, tokens should still
         be shown as strings. This means we represent
@@ -13,6 +12,8 @@ TODO
     * Convert pattern tokens to rule trees
       * '|' -> choice
       * '+' -> repeat
+    * Determine how to represent FSA.
+      - graph, where nodes are LR states. a state is
     * Compute possible transitions for each rule type
     * Group token states into overall states
 

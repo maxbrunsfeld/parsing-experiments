@@ -8,7 +8,10 @@
 ;; compilation
 
 (define (grammar->state-machine g)
-  (make-fsm 1 2))
+  (make-lr-state '()))
+
+(define (tokens->state-machine tokens)
+  (make-lr-state '()))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; code generation

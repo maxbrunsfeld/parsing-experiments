@@ -7,7 +7,7 @@
   (include
     "test-helper.scm"
     "grammar-test.scm"
-    "state-machine-test.scm"
+    "compile-test.scm"
     "code-gen-test.scm")
   (begin
     (test-exit)))

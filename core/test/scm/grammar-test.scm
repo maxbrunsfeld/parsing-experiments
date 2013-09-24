@@ -73,7 +73,13 @@
     ((s1 (make-sym-rule 'symbol-1))
      (s2 (make-sym-rule 'symbol-2))
      (s3 (make-sym-rule 'symbol-3))
-     (s4 (make-sym-rule 'symbol-4)))
+     (s4 (make-char-token 'a)))
+
+    (test-group "characters"
+      (it "ends after the character"
+        (equal?
+          (rule-transitions s4)
+          (list (list s4 rule-end)))))
 
     (test-group "symbols"
       (it "ends after the symbol itself"
