@@ -1,6 +1,7 @@
 require("spec_helper")
 
 local Rules = require("rules")
+local Tokens = require("tokens")
 
 describe("Rules", function()
   local rule
@@ -39,6 +40,49 @@ describe("Rules", function()
         assert.are.same({
           one = Rules.Sym("two"),
           three = Rules.Sym("four")
+        }, rule:transitions())
+      end)
+
+      it("handles cases where both sides start with the same token", function()
+        rule = Rules.Choice(
+          Rules.Seq(
+            Rules.Sym("one"),
+            Rules.Sym("two")),
+          Rules.Seq(
+            Rules.Sym("one"),
+            Rules.Sym("four")))
+
+        assert.are.same({
+          one = Rules.Choice(Rules.Sym("two"), Rules.Sym("four"))
+        }, rule:transitions())
+      end)
+    end)
+
+    describe("repetitions", function()
+      it("can end or continue", function()
+        rule = Rules.Repeat(Rules.Sym("one"))
+
+        assert.are.same({
+          one = Rules.Choice(rule, Rules.End)
+        }, rule:transitions())
+      end)
+
+      it("handles sequences", function()
+        rule = Rules.Repeat(Rules.Seq(Rules.Sym("one"), Rules.Sym("two")))
+
+        assert.are.same({
+          one = Rules.Seq(
+            Rules.Sym("two"),
+            Rules.Choice(rule, Rules.End))
+        }, rule:transitions())
+      end)
+
+      it("handles choices", function()
+        rule = Rules.Repeat(Rules.Choice(Rules.Sym("one"), Rules.Sym("two")))
+
+        assert.are.same({
+          one = Rules.Choice(rule, Rules.End),
+          two = Rules.Choice(rule, Rules.End)
         }, rule:transitions())
       end)
     end)

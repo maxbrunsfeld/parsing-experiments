@@ -1,5 +1,4 @@
-local _ = require("underscore")
-local End, Seq, Sym, Choice, String, Pattern
+local End, Seq, Sym, Choice
 
 local function map_transitions(t, fn)
   local result = {}
@@ -46,18 +45,18 @@ Seq = (function()
 
   function proto:transitions()
     return map_transitions(self.left:transitions(), function(rule)
-      if rule == End then
-        return self.right
-      else
-        return Seq(rule, self.right)
-      end
+      return Seq(rule, self.right)
     end)
   end
 
   return function(left, right)
-    local result = { left = left, right = right }
-    setmetatable(result, { __index = proto })
-    return result
+    if left == End then
+      return right
+    else
+      local result = { left = left, right = right }
+      setmetatable(result, { __index = proto })
+      return result
+    end
   end
 end)()
 
@@ -80,7 +79,23 @@ Choice = (function()
   end
 end)()
 
-String = (function()
+Repeat = (function()
+  local proto = {}
+
+  function proto:transitions()
+    return map_transitions(self.value:transitions(), function(value)
+      return Seq(value, Choice(self, End))
+    end)
+  end
+
+  return function(value)
+    local result = { value = value }
+    setmetatable(result, { __index = proto })
+    return result
+  end
+end)()
+
+CharClass = (function()
   local proto = {}
 
   function proto:transitions()
@@ -94,7 +109,7 @@ String = (function()
   end
 end)()
 
-Pattern = (function()
+Char = (function()
   local proto = {}
 
   function proto:transitions()
@@ -109,10 +124,11 @@ Pattern = (function()
 end)()
 
 return {
-  Sym = Sym,
-  String = String,
-  Pattern = Pattern,
+  Char = Char,
+  CharClass = CharClass,
   Choice = Choice,
+  End = End,
+  Repeat = Repeat,
   Seq = Seq,
-  End = End
+  Sym = Sym
 }

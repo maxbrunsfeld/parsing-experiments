@@ -1,5 +1,6 @@
 local Grammar = require("grammar")
 local Rules = require("rules")
+local Tokens = require("tokens")
 local _ = require("underscore")
 
 local function map_pairs(pairs, fn)
@@ -27,9 +28,9 @@ end
 
 local function read_token(json)
   if type(json) == 'string' then
-    return Rules.String(json)
+    return Tokens.String(json)
   else
-    return Rules.Pattern(json[2])
+    return Tokens.Pattern(json[2])
   end
 end
 
