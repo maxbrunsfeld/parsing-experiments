@@ -1,7 +1,6 @@
 require("spec_helper")
 
 local Rules = require("rules")
-local Tokens = require("tokens")
 
 describe("Rules", function()
   local rule
@@ -10,10 +9,21 @@ describe("Rules", function()
     describe("symbols", function()
       it("ends after the symbol is consumed", function()
         rule = Rules.Sym("one")
+        assert.are.same({ one = Rules.End }, rule:transitions())
+      end)
+    end)
 
-        assert.are.same({
-          one = Rules.End
-        }, rule:transitions())
+    describe("characters", function()
+      it("ends after the char is consumed", function()
+        rule = Rules.Char("x")
+        assert.are.same({ x = Rules.End }, rule:transitions())
+      end)
+    end)
+
+    describe("characters", function()
+      it("ends after the char is consumed", function()
+        rule = Rules.CharClass("space")
+        assert.are.same({ space = Rules.End }, rule:transitions())
       end)
     end)
 

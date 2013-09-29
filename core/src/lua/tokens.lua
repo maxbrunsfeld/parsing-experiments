@@ -1,3 +1,5 @@
+local regex = require("regex")
+
 local String, Pattern
 
 String = (function()
@@ -18,7 +20,7 @@ Pattern = (function()
   local proto = {}
 
   function proto:transitions()
-    return {}
+    return regex.compile(self.value):transitions()
   end
 
   return function(value)

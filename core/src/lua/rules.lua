@@ -99,7 +99,7 @@ CharClass = (function()
   local proto = {}
 
   function proto:transitions()
-    return {}
+    return { [self.value] = End }
   end
 
   return function(value)
@@ -113,7 +113,7 @@ Char = (function()
   local proto = {}
 
   function proto:transitions()
-    return {}
+    return { [self.value] = End }
   end
 
   return function(value)
