@@ -1,7 +1,8 @@
 #include "compiler.h"
 
 struct TSToken {
-  const char *pattern;
+  int is_pattern;
+  const char *value;
 };
 
 struct TSRule {
@@ -16,9 +17,11 @@ struct TSRule {
 };
 
 struct TSGrammar {
+  const char *name;
   int rule_count;
+  const char **rule_names;
+  const TSRule **rules;
   int token_count;
-  TSRule **rules;
-  TSToken **tokens;
-  const char **symbol_names;
+  const char **token_names;
+  const TSToken **tokens;
 };

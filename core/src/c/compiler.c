@@ -1,7 +1,7 @@
 #include "compiler.h"
 #include "grammar.h"
 #include <stdlib.h>
-#include "scheme.h"
+#include "lua_bridge.h"
 
 struct TSCompiler {
   TSGrammar *grammar;
@@ -21,10 +21,10 @@ void ts_compiler_free(TSCompiler *compiler)
 
 char * ts_compiler_c_code(TSCompiler *compiler)
 {
-  sexp ctx = ts_scheme_context();
-  sexp grammar = ts_scheme_grammar(ctx, compiler->grammar);
-  sexp result = ts_scheme_call(ctx, "grammar->c-code", grammar);
-  char *result_string = ts_scheme_string(result);
-  sexp_destroy_context(ctx);
-  return result_string;
+  lua_State *L = ts_lua_vm();
+  lua_getglobal(L, "grammar_to_c_code");
+  ts_lua_push_grammar(L, compiler->grammar);
+  lua_call(L, 1, 1);
+  const char *result = lua_tostring(L, -1);
+  return result;
 }

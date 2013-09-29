@@ -3,18 +3,25 @@
 #include <stdlib.h>
 
 TSGrammar * ts_grammar_new(
+  const char *name,
   int rule_count,
+  const char **rule_names,
+  const TSRule **rules,
   int token_count,
-  TSRule **rules,
-  TSToken **tokens,
-  const char **symbol_names)
+  const char **token_names,
+  const TSToken **tokens)
 {
   TSGrammar* grammar = malloc(sizeof(TSGrammar));
+  grammar->name = name;
+
   grammar->rule_count = rule_count;
-  grammar->token_count = token_count;
+  grammar->rule_names = rule_names;
   grammar->rules = rules;
+
+  grammar->token_count = token_count;
+  grammar->token_names = token_names;
   grammar->tokens = tokens;
-  grammar->symbol_names = symbol_names;
+
   return grammar;
 }
 

@@ -61,15 +61,18 @@ TSArray * ts_rule_transitions(TSRule *rule);
 int ts_rule_eq(TSRule *rule1, TSRule *rule2);
 
 /* --- Token --- */
-TSToken * ts_token_new(const char *pattern);
+TSToken * ts_token_new_pattern(const char *pattern);
+TSToken * ts_token_new_string(const char *pattern);
 
 /* --- Grammar --- */
 TSGrammar * ts_grammar_new(
-  int rule_count,
-  int token_count,
-  TSRule **rules,
-  TSToken **tokens,
-  const char **symbol_names);
+  const char *name,
+  const int rule_count,
+  const char **rule_names,
+  const TSRule **rules,
+  const int token_count,
+  const char **token_names,
+  const TSToken **tokens);
 void ts_grammar_free(TSGrammar *grammar);
 void ts_grammar_compile();
 

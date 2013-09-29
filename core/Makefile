@@ -36,23 +36,23 @@ CFLAGS ?= -Wall -std=c99 -g -m64
 all: $(LIB_FILE)
 
 $(LIB_FILE): $(OBJECTS) $(HEADERS)
-	$(CC) -lchibi-scheme $(OBJECTS) $(CLIBFLAGS) -o $@
+	$(CC) -llua -lm $(OBJECTS) $(CLIBFLAGS) -o $@
 
 src/c/%.o: src/c/%.c
 	$(CC) $(CFLAGS) -Iinclude -c $< -o $@
 
-install-dev: $(LIB_FILE)
+install-dev:
 	$(RM) $(INCDIR)/$(LIB_NAME);   $(SYMLINK) $(DIR)/include $(INCDIR)/$(LIB_NAME)
-	$(RM) $(MODDIR)/$(LIB_NAME);   $(SYMLINK) $(DIR)/src/scm $(MODDIR)/$(LIB_NAME)
+	$(RM) $(MODDIR)/$(LIB_NAME);   $(SYMLINK) $(DIR)/src/lua $(MODDIR)/$(LIB_NAME)
 	$(RM) $(SOLIBDIR)/$(LIB_FILE); $(SYMLINK) $(DIR)/$(LIB_FILE) $(SOLIBDIR)/$(LIB_FILE)
 
-test: test-c test-scm
+test: test-c test-lua
 
 test-c: $(TEST_BIN)
 	./$<
 
-test-scm:
-	chibi-scheme -Isrc/scm -Itest/scm -mtree-sitter-test
+test-lua:
+	busted -m './src/lua/?.lua;./test/lua/?.lua' test/lua
 
 $(TEST_BIN): $(LIB_FILE) $(C_TESTS)
 	c++ -std=c++11 -stdlib=libc++ -I./include -Itest/c -Iexternals/bantam-bdd -L. -l$(LIB_NAME) test/c/_runner.cc -o $@
@@ -61,7 +61,7 @@ valgrind: $(TEST_BIN)
 	valgrind --track-origins=yes $(TEST_BIN)
 
 repl:
-	chibi-scheme -Isrc/scm -mchibi.repl -mtree-sitter -e'(repl)'
+	lua -i -e'package.path = "./src/lua/?.lua;" .. package.path; require("start");'
 
 clean:
 	$(RM) $(OBJECTS) $(LIB_FILE)
