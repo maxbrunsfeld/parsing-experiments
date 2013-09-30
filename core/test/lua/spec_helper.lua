@@ -1,5 +1,4 @@
 pp = require("pl.pretty").dump
-_ = require("underscore")
 
 local R = require("rules")
 

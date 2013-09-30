@@ -26,9 +26,9 @@ describe("Rules", function()
 
     describe("characters", function()
       it("ends after the char is consumed", function()
-        rule = _class("space")
+        rule = _class.space(true)
         assert.are.same({
-          { _class("space"), _end }
+          { _class.space(true), _end }
         }, rule:transitions())
       end)
     end)

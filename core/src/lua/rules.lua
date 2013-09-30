@@ -119,11 +119,19 @@ CharClass = (function()
     return {{ self, End }}
   end
 
-  return function(value)
-    local result = { value = value }
-    setmetatable(result, { __index = proto })
-    return result
+  local function Class(name)
+    return function(value)
+      local result = { value = value }
+      setmetatable(result, { __index = proto })
+      return result
+    end
   end
+
+  return {
+    digit = Class("digit"),
+    space = Class("space"),
+    word = Class("word")
+  }
 end)()
 
 Char = (function()

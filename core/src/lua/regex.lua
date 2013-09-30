@@ -4,9 +4,12 @@ local Compiler = (function()
   local proto = {}
 
   local CHAR_CLASS_MAP = {
-    d = "digit",
-    s = "space",
-    w = "word"
+    d = { "digit", true },
+    D = { "digit", false },
+    s = { "space", true },
+    S = { "space", false },
+    w = { "word", true },
+    W = { "word", false }
   }
 
   function proto:main()
@@ -45,7 +48,12 @@ local Compiler = (function()
   function proto:atom()
     if self:peek() == "\\" then
       self:consume(1)
-      return Rules.CharClass(CHAR_CLASS_MAP[self:next()])
+      local char = self:next()
+      local class_desc = CHAR_CLASS_MAP[char]
+      if not class_desc then
+        error("Unknown character class: '\\" .. char .."'")
+      end
+      return Rules.CharClass[class_desc[1]](class_desc[2])
     else
       return Rules.Char(self:next())
     end

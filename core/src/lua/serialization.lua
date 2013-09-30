@@ -1,12 +1,13 @@
 local Grammar = require("grammar")
 local Rules = require("rules")
 local Tokens = require("tokens")
-local _ = require("underscore")
 
-local function map_pairs(pairs, fn)
-  return _.map(pairs, function(pair)
-    return { pair[1], fn(pair[2]) }
-  end)
+local function map_pairs(t, fn)
+  local result = {}
+  for i, pair in ipairs(t) do
+    result[i] = { pair[1], fn(pair[2]) }
+  end
+  return result
 end
 
 local function read_rule(json)
