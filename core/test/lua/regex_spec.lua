@@ -26,22 +26,22 @@ describe("compiling a regex", function()
 
   it("parses character classes", function()
     rule = regex.compile("\\d")
-    assert.are.same(_cc("digit"), rule)
+    assert.are.same(_class("digit"), rule)
 
     rule = regex.compile("\\s")
-    assert.are.same(_cc("space"), rule)
+    assert.are.same(_class("space"), rule)
 
     rule = regex.compile("\\w")
-    assert.are.same(_cc("word"), rule)
+    assert.are.same(_class("word"), rule)
   end)
 
   it("parses repetitions", function()
     rule = regex.compile("\\s*")
-    assert.are.same(_rep(_cc("space")), rule)
+    assert.are.same(_rep(_class("space")), rule)
   end)
 
   it("parses one-or-more repetitions", function()
     rule = regex.compile("x+")
-    assert.are.same(_seq(_char("x"), _rep(_cc("x"))), rule)
+    assert.are.same(_seq(_char("x"), _rep(_class("x"))), rule)
   end)
 end)

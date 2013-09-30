@@ -1,24 +1,37 @@
 local End, Seq, Sym, Choice
 
-local function map_transitions(t, fn)
+local function copy_table(t)
   local result = {}
   for k, v in pairs(t) do
-    result[k] = fn(v)
+    result[k] = v
   end
   return result
 end
 
-local function merge_transitions(t1, t2, fn)
+local function map_transitions(t, fn)
   local result = {}
-  for k, v in pairs(t1) do
-    result[k] = v
+  for i, pair in ipairs(t) do
+    result[i] = { pair[1], fn(pair[2]) }
   end
-  for k, v in pairs(t2) do
-    local v1 = t1[k]
-    if v1 then
-      result[k] = fn(v1, v)
+  return result
+end
+
+local function find_transition(entry, t)
+  for i, pair in ipairs(t) do
+    if pair[1] == entry[1] then
+      return pair
+    end
+  end
+end
+
+local function merge_transitions(t1, t2, fn)
+  local result = copy_table(t1)
+  for i, transition in ipairs(t2) do
+    local existing = find_transition(transition, result)
+    if existing then
+      existing[2] = fn(existing[2], transition[2])
     else
-      result[k] = v
+      result[#result + 1] = transition
     end
   end
   return result
@@ -30,12 +43,16 @@ Sym = (function(self)
   local proto = {}
 
   function proto:transitions()
-    return { [self.name] = End }
+    return {{ self, End }}
+  end
+
+  local function eq(s1, s2)
+    return s1.name == s2.name
   end
 
   return function(name)
     local result = { name = name }
-    setmetatable(result, { __index = proto })
+    setmetatable(result, { __index = proto, __eq = eq })
     return result
   end
 end)()
@@ -99,7 +116,7 @@ CharClass = (function()
   local proto = {}
 
   function proto:transitions()
-    return { [self.value] = End }
+    return {{ self, End }}
   end
 
   return function(value)
@@ -113,7 +130,7 @@ Char = (function()
   local proto = {}
 
   function proto:transitions()
-    return { [self.value] = End }
+    return {{ self, End }}
   end
 
   return function(value)
