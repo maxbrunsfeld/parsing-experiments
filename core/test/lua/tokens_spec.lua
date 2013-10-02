@@ -15,5 +15,20 @@ describe("Tokens", function()
           Rules.Repeat(Rules.Char("x")):transitions())
       end)
     end)
+
+    describe("strings", function()
+      it("reduces to a sequence of characters", function()
+        token = Tokens.Pattern("abcd")
+        assert.are.same(
+          token:transitions(),
+          _seq(
+            _seq(
+              _seq(
+                _char("a"),
+                _char("b")),
+              _char("c")),
+            _char("d")):transitions())
+      end)
+    end)
   end)
 end)
