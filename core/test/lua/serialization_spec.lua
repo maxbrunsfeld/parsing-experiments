@@ -9,9 +9,8 @@ describe("Grammar", function()
   describe("reading", function()
     local grammar
     local serial_grammar = {
-      name = "my-language",
-
-      rules = {
+      {"name", "my-language"},
+      {"rules", {
         {"sum",
           {"CHOICE",
             {"SEQ", "product", {"SEQ", "plus", "product"}},
@@ -19,14 +18,12 @@ describe("Grammar", function()
         {"product",
           {"CHOICE",
             {"SEQ", "factor", {"SEQ", "times", "factor"}},
-            "factor"}}},
-
-      tokens = {
+            "factor"}}}},
+      {"tokens", {
         {"times", "*"},
         {"plus", "+"},
         {"number", {"PATTERN", "\\d+"}},
-        {"name", {"PATTERN", "\\w+"}}}
-    }
+        {"name", {"PATTERN", "\\w+"}}}}}
 
     before_each(function()
       grammar = Serialization.read_grammar(serial_grammar)

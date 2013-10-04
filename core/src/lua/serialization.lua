@@ -1,3 +1,4 @@
+local util = require("util")
 local Grammar = require("grammar")
 local Rules = require("rules")
 local Tokens = require("tokens")
@@ -38,9 +39,9 @@ end
 return {
   read_grammar = function(json)
     return Grammar(
-      json.name,
-      map_pairs(json.rules, read_rule),
-      map_pairs(json.tokens, read_token))
+      util.alist_get(json, "name"),
+      map_pairs(util.alist_get(json, "rules"), read_rule),
+      map_pairs(util.alist_get(json, "tokens"), read_token))
   end,
 
   write_grammar = function()

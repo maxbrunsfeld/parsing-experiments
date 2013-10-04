@@ -42,6 +42,14 @@ local function mapcat(t, fn)
   return result
 end
 
+local function alist_get(alist, key)
+  for i, pair in ipairs(alist) do
+    if pair[1] == key then
+      return pair[2]
+    end
+  end
+end
+
 local function alist_map(t, fn)
   return map(t, function(pair)
     return { pair[1], fn(pair[2]) }
@@ -75,6 +83,7 @@ return {
   push = push,
   mapcat = mapcat,
   pluck = pluck,
+  alist_get = alist_get,
   alist_map = alist_map,
   alist_find = alist_find,
   alist_merge = alist_merge
