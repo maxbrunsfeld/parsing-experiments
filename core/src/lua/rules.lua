@@ -1,127 +1,77 @@
-local End, Seq, Sym, Choice
-
+local Struct = require("struct")
 local util = require("util")
 
-End = (function()
-  local proto = {}
+local End, Seq, Sym, Choice
 
-  function proto:transitions()
-    return {}
-  end
-
-  local result = { "__END__" }
-  setmetatable(result, { __index = proto })
-  return result
-end)()
-
-Sym = (function(self)
-  local proto = {}
-
-  function proto:transitions()
+Sym = Struct({ "name" }, {
+  transitions = function(self)
     return {{ self, End }}
   end
+})
 
-  local function eq(s1, s2)
-    return s1.name == s2.name
-  end
+Seq = Struct({ "left", "right" }, {
+  initialize = function(self, left, right)
+    if left == End then
+      return right
+    else
+      self.left = left
+      self.right = right
+    end
+  end,
 
-  return function(name)
-    local result = { name = name }
-    setmetatable(result, { __index = proto, __eq = eq })
-    return result
-  end
-end)()
-
-Seq = (function()
-  local proto = {}
-
-  function proto:transitions()
+  transitions = function(self)
     return util.alist_map(self.left:transitions(), function(rule)
       return Seq(rule, self.right)
     end)
   end
+})
 
-  return function(left, right)
-    if left == End then
-      return right
-    else
-      local result = { left = left, right = right }
-      setmetatable(result, { __index = proto })
-      return result
-    end
-  end
-end)()
-
-Choice = (function()
-  local proto = {}
-
-  function proto:transitions()
+Choice = Struct({ "left", "right" }, {
+  transitions = function(self)
     return util.alist_merge(
       self.left:transitions(),
       self.right:transitions(),
-      function(left, right)
-        return Choice(left, right)
-      end)
+      self.class)
   end
+})
 
-  return function(left, right)
-    local result = { left = left, right = right }
-    setmetatable(result, { __index = proto })
-    return result
-  end
-end)()
-
-Repeat = (function()
-  local proto = {}
-
-  function proto:transitions()
+Repeat = Struct({ "value" }, {
+  transitions = function(self)
     return util.alist_map(self.value:transitions(), function(value)
       return Seq(value, Choice(self, End))
     end)
   end
-
-  return function(value)
-    local result = { value = value }
-    setmetatable(result, { __index = proto })
-    return result
-  end
-end)()
+})
 
 CharClass = (function()
-  local proto = {}
-
-  function proto:transitions()
-    return {{ self, End }}
-  end
-
-  local function Class(name)
-    return function(value)
-      local result = { value = value }
-      setmetatable(result, { __index = proto })
-      return result
-    end
+  local function make_char_class(name)
+    return Struct({ "coefficient" }, {
+      transitions = function(self)
+        return {{ self, End }}
+      end
+    })
   end
 
   return {
-    digit = Class("digit"),
-    space = Class("space"),
-    word = Class("word")
+    digit = make_char_class("digit"),
+    space = make_char_class("space"),
+    word = make_char_class("word")
   }
 end)()
 
-Char = (function()
-  local proto = { class = Char }
-
-  function proto:transitions()
+Char = Struct({ "value" }, {
+  transitions = function(self)
     return {{ self, End }}
   end
+})
 
-  return function(value)
-    local result = { value = value }
-    setmetatable(result, { __index = proto })
-    return result
+End = Struct({}, {
+  transitions = function(self)
+    return {}
   end
-end)()
+})()
+
+End[1] = "__END__"
 
 return {
   Char = Char,
