@@ -24,8 +24,8 @@ describe("Rules", function()
       end)
     end)
 
-    describe("characters", function()
-      it("ends after the char is consumed", function()
+    describe("character classes", function()
+      it("ends after the character class is consumed", function()
         rule = _class.space(true)
         assert.are.same({
           { _class.space(true), _end }
