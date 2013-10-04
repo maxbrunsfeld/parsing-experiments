@@ -1,18 +1,23 @@
 local Rules = require("rules")
+local Struct = require("struct")
 
-local Compiler = (function()
-  local proto = {}
+local CHAR_CLASS_MAP = {
+  d = { "digit", true },
+  D = { "digit", false },
+  s = { "space", true },
+  S = { "space", false },
+  w = { "word", true },
+  W = { "word", false }
+}
 
-  local CHAR_CLASS_MAP = {
-    d = { "digit", true },
-    D = { "digit", false },
-    s = { "space", true },
-    S = { "space", false },
-    w = { "word", true },
-    W = { "word", false }
-  }
+local Compiler = Struct({ 'input' }, {
+  initialize = function(self, input)
+    self.input = input
+    self.i = 1
+    self.len = string.len(input)
+  end,
 
-  function proto:main()
+  main = function(self)
     local term = self:term()
     if self:has_more() and self:peek() == '|' then
       self:consume(1)
@@ -20,17 +25,17 @@ local Compiler = (function()
     else
       return term
     end
-  end
+  end,
 
-  function proto:term()
+  term = function(self)
     local result = Rules.End
     while self:has_more() and (self:peek() ~= '|') do
       result = Rules.Seq(result, self:factor())
     end
     return result
-  end
+  end,
 
-  function proto:factor()
+  factor = function(self)
     local result = self:atom()
     if self:has_more() then
       local char = self:peek()
@@ -43,9 +48,9 @@ local Compiler = (function()
       end
     end
     return result
-  end
+  end,
 
-  function proto:atom()
+  atom = function(self)
     if self:peek() == "\\" then
       self:consume(1)
       local char = self:next()
@@ -57,42 +62,29 @@ local Compiler = (function()
     else
       return Rules.Char(self:next())
     end
-  end
+  end,
 
   -- primitives
 
-  function proto:next()
+  next = function(self)
     local result = self:peek()
     self:consume(1)
     return result
-  end
+  end,
 
-  function proto:peek()
+  peek = function(self)
     return string.sub(self.input, self.i, self.i)
-  end
+  end,
 
-  function proto:consume(n)
+  consume = function(self, n)
     self.i = self.i + n
-  end
+  end,
 
-  function proto:has_more()
+  has_more = function(self)
     return self.i <= self.len
   end
+})
 
-  return function(input)
-    local result = {
-      input = input,
-      i = 1,
-      len = string.len(input),
-      value = nil
-    }
-    setmetatable(result, { __index = proto })
-    return result
-  end
-end)()
-
-local function compile(input)
+return function(input)
   return Compiler(input):main()
 end
-
-return { compile = compile }

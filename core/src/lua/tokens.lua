@@ -14,7 +14,7 @@ local String = Struct({ 'value' }, {
 
 local Pattern = Struct({ 'value' }, {
   transitions = function(self)
-    return regex.compile(self.value):transitions()
+    return regex(self.value):transitions()
   end
 })
 
