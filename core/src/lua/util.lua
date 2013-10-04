@@ -6,6 +6,19 @@ local function copy_table(t)
   return result
 end
 
+local function contains(table, el)
+  for i, v in ipairs(table) do
+    if v == el then
+      return true
+    end
+  end
+  return false
+end
+
+local function push(table, el)
+  table[#table + 1] = el
+end
+
 local function map(t, fn)
   local result = {}
   for i, v in ipairs(t) do
@@ -58,6 +71,8 @@ end
 
 return {
   map = map,
+  contains = contains,
+  push = push,
   mapcat = mapcat,
   pluck = pluck,
   alist_map = alist_map,

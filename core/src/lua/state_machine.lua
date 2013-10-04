@@ -1,19 +1,18 @@
 local LrItem = require("lr_item")
 local Rules = require("rules")
 local util = require("util")
-local Set = require("set")
 local Struct = require("struct")
 
 local State = Struct({ "rules", "items" }, {
   initialize = function(self, rules, item)
     self.rules = rules
-    self.items = Set()
+    self.items = {}
     self:add_item(item)
   end,
 
   add_item = function(self, item)
-    if not self.items:contains(item) then
-      self.items:add(item)
+    if not util.contains(self.items, item) then
+      util.push(self.items, item)
       local transitions = item:transitions()
       for i, pair in ipairs(transitions) do
         local transition_val = pair[1]
@@ -37,7 +36,7 @@ local State = Struct({ "rules", "items" }, {
 
 return Struct({ "tokens" }, {
   initialize = function(self, tokens, state)
-    self.states = Set()
+    self.states = {}
     local state = State(tokens, LrItem(true, self:build_choice(tokens)))
     self:add_state(state)
   end,
@@ -56,8 +55,8 @@ return Struct({ "tokens" }, {
   end,
 
   add_state = function(self, state)
-    if not self.states:contains(state) then
-      self.states:add(state)
+    if not util.contains(self.states, state) then
+      util.push(self.states, state)
       local transitions = state:transitions()
       for i, v in ipairs(transitions) do
         self:add_state(v[2])
