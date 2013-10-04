@@ -1,15 +1,23 @@
 local Struct = require("struct")
 local util = require("util")
 
-local End, Seq, Sym, Choice
+local End = Struct({}, {
+  initialize = function(self)
+    self[1] = "__END__"
+  end,
 
-Sym = Struct({ "name" }, {
+  transitions = function(self)
+    return {}
+  end
+})()
+
+local Sym = Struct({ "name" }, {
   transitions = function(self)
     return {{ self, End }}
   end
 })
 
-Seq = Struct({ "left", "right" }, {
+local Seq = Struct({ "left", "right" }, {
   initialize = function(self, left, right)
     if left == End then
       return right
@@ -21,12 +29,12 @@ Seq = Struct({ "left", "right" }, {
 
   transitions = function(self)
     return util.alist_map(self.left:transitions(), function(rule)
-      return Seq(rule, self.right)
+      return self.class(rule, self.right)
     end)
   end
 })
 
-Choice = Struct({ "left", "right" }, {
+local Choice = Struct({ "left", "right" }, {
   transitions = function(self)
     return util.alist_merge(
       self.left:transitions(),
@@ -35,7 +43,7 @@ Choice = Struct({ "left", "right" }, {
   end
 })
 
-Repeat = Struct({ "value" }, {
+local Repeat = Struct({ "value" }, {
   transitions = function(self)
     return util.alist_map(self.value:transitions(), function(value)
       return Seq(value, Choice(self, End))
@@ -43,7 +51,7 @@ Repeat = Struct({ "value" }, {
   end
 })
 
-CharClass = (function()
+local CharClass = (function()
   local function make_char_class(name)
     return Struct({ "coefficient" }, {
       transitions = function(self)
@@ -59,19 +67,11 @@ CharClass = (function()
   }
 end)()
 
-Char = Struct({ "value" }, {
+local Char = Struct({ "value" }, {
   transitions = function(self)
     return {{ self, End }}
   end
 })
-
-End = Struct({}, {
-  transitions = function(self)
-    return {}
-  end
-})()
-
-End[1] = "__END__"
 
 return {
   Char = Char,

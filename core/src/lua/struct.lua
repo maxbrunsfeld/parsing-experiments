@@ -1,4 +1,6 @@
 return function(fields, proto)
+  if not proto then proto = {} end
+
   if not proto.initialize then
     proto.initialize = function(self, ...)
       local args = {...}

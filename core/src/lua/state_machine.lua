@@ -4,9 +4,7 @@ local util = require("util")
 local Set = require("set")
 local Struct = require("struct")
 
-local State, StateMachine
-
-State = Struct({ "rules", "items" }, {
+local State = Struct({ "rules", "items" }, {
   initialize = function(self, rules, item)
     self.rules = rules
     self.items = Set()
@@ -31,13 +29,13 @@ State = Struct({ "rules", "items" }, {
   transitions = function(self)
     return util.mapcat(self.items, function(item)
       return util.map(item:transitions(), function(transition)
-        return { transition[1], State(self.rules, transition[2]) }
+        return { transition[1], self.class(self.rules, transition[2]) }
       end)
     end)
   end
 })
 
-StateMachine = Struct({ "tokens" }, {
+return Struct({ "tokens" }, {
   initialize = function(self, tokens, state)
     self.states = Set()
     local state = State(tokens, LrItem(true, self:build_choice(tokens)))
@@ -67,5 +65,3 @@ StateMachine = Struct({ "tokens" }, {
     end
   end
 })
-
-return StateMachine
