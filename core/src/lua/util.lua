@@ -14,6 +14,10 @@ local function map(t, fn)
   return result
 end
 
+local function pluck(t, field_name)
+  return map(t, function(row) return row[field_name] end)
+end
+
 local function mapcat(t, fn)
   local result = {}
   for i, v in ipairs(t) do
@@ -55,6 +59,7 @@ end
 return {
   map = map,
   mapcat = mapcat,
+  pluck = pluck,
   alist_map = alist_map,
   alist_find = alist_find,
   alist_merge = alist_merge

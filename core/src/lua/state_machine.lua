@@ -40,7 +40,7 @@ State = Struct({ "rules", "items" }, {
 StateMachine = Struct({ "tokens" }, {
   initialize = function(self, tokens, state)
     self.states = Set()
-    local state = State(tokens, LrItem(nil, self:build_choice(tokens)))
+    local state = State(tokens, LrItem(true, self:build_choice(tokens)))
     self:add_state(state)
   end,
 
@@ -53,6 +53,7 @@ StateMachine = Struct({ "tokens" }, {
     for i = 2, #symbols do
       result = Rules.Choice(result, symbols[i])
     end
+
     return result
   end,
 
