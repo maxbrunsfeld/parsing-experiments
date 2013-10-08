@@ -59,6 +59,20 @@ static void ts_lua_push_rule(lua_State *L, TSRule *rule)
         lua_call(L, 1, 1);
         break;
       }
+    case TSRuleTypeString:
+      {
+        lua_getfield(L, -1, "String");
+        lua_pushstring(L, rule->impl.string);
+        lua_call(L, 1, 1);
+        break;
+      }
+    case TSRuleTypePattern:
+      {
+        lua_getfield(L, -1, "Pattern");
+        lua_pushstring(L, rule->impl.string);
+        lua_call(L, 1, 1);
+        break;
+      }
     case TSRuleTypeSeq:
       {
         lua_getfield(L, -1, "Seq");
@@ -85,7 +99,7 @@ static void ts_lua_push_rule(lua_State *L, TSRule *rule)
   lua_remove(L, -2);
 }
 
-static void ts_lua_push_token(lua_State *L, TSToken *token)
+static void ts_lua_push_token(lua_State *L, TSRule *token)
 {
   lua_pushinteger(L, 1);
 }
@@ -99,14 +113,30 @@ void ts_lua_push_grammar(lua_State *L, TSGrammar *grammar)
   lua_createtable(L, grammar->rule_count, 0);
   for (int i = 0; i < grammar->rule_count; i++) {
     lua_pushinteger(L, i + 1);
+
+    lua_createtable(L, 2, 0);
+    lua_pushinteger(L, 1);
+    lua_pushstring(L, grammar->rule_names[i]);
+    lua_settable(L, -3);
+    lua_pushinteger(L, 2);
     ts_lua_push_rule(L, grammar->rules[i]);
+    lua_settable(L, -3);
+
     lua_settable(L, -3);
   }
 
   lua_createtable(L, grammar->token_count, 0);
   for (int i = 0; i < grammar->token_count; i++) {
     lua_pushinteger(L, i + 1);
-    ts_lua_push_token(L, grammar->tokens[i]);
+
+    lua_createtable(L, 2, 0);
+    lua_pushinteger(L, 1);
+    lua_pushstring(L, grammar->token_names[i]);
+    lua_settable(L, -3);
+    lua_pushinteger(L, 2);
+    ts_lua_push_rule(L, grammar->tokens[i]);
+    lua_settable(L, -3);
+
     lua_settable(L, -3);
   }
 

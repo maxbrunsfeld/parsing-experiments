@@ -1,10 +1,5 @@
 #include "compiler.h"
 
-struct TSToken {
-  int is_pattern;
-  const char *value;
-};
-
 struct TSRule {
   TSRuleType type;
   union {
@@ -13,6 +8,7 @@ struct TSRule {
       struct TSRule *left;
       struct TSRule *right;
     } binary;
+    const char *string;
   } impl;
 };
 
@@ -23,5 +19,5 @@ struct TSGrammar {
   const TSRule **rules;
   int token_count;
   const char **token_names;
-  const TSToken **tokens;
+  const TSRule **tokens;
 };

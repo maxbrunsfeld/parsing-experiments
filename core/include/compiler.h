@@ -12,13 +12,14 @@ typedef struct TSCompiler TSCompiler;
 typedef struct TSArray TSArray;
 typedef struct TSGrammar TSGrammar;
 typedef struct TSRule TSRule;
-typedef struct TSToken TSToken;
 typedef int TSSymbolId;
 typedef enum {
   TSRuleTypeEnd,
   TSRuleTypeSym,
   TSRuleTypeChoice,
-  TSRuleTypeSeq
+  TSRuleTypeSeq,
+  TSRuleTypeString,
+  TSRuleTypePattern
 } TSRuleType;
 
 /* --- Array --- */
@@ -51,6 +52,8 @@ typedef struct TSTransition {
 TSRule * ts_rule_new_sym(TSSymbolId id);
 TSRule * ts_rule_new_choice(TSRule *left, TSRule *right);
 TSRule * ts_rule_new_seq(TSRule *left, TSRule *right);
+TSRule * ts_rule_new_string(const char *string);
+TSRule * ts_rule_new_pattern(const char *string);
 TSRule * ts_rule_new_end();
 void ts_rule_free(TSRule *rule);
 
@@ -60,10 +63,6 @@ TSRule * ts_rule_right(TSRule *rule);
 TSArray * ts_rule_transitions(TSRule *rule);
 int ts_rule_eq(TSRule *rule1, TSRule *rule2);
 
-/* --- Token --- */
-TSToken * ts_token_new_pattern(const char *pattern);
-TSToken * ts_token_new_string(const char *pattern);
-
 /* --- Grammar --- */
 TSGrammar * ts_grammar_new(
   const char *name,
@@ -72,7 +71,7 @@ TSGrammar * ts_grammar_new(
   const TSRule **rules,
   const int token_count,
   const char **token_names,
-  const TSToken **tokens);
+  const TSRule **tokens);
 void ts_grammar_free(TSGrammar *grammar);
 void ts_grammar_compile();
 

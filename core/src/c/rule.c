@@ -37,6 +37,22 @@ TSRule * ts_rule_new_end()
   return rule;
 }
 
+TSRule * ts_rule_new_string(const char *value)
+{
+  TSRule *result = malloc(sizeof(TSRule));
+  result->type = TSRuleTypeString;
+  result->impl.string = value;
+  return result;
+}
+
+TSRule * ts_rule_new_pattern(const char *value)
+{
+  TSRule *result = malloc(sizeof(TSRule));
+  result->type = TSRuleTypePattern;
+  result->impl.string = value;
+  return result;
+}
+
 void ts_rule_free(TSRule *rule)
 {
   free(rule);

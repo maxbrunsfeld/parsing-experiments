@@ -9,7 +9,7 @@ TSGrammar * ts_grammar_new(
   const TSRule **rules,
   int token_count,
   const char **token_names,
-  const TSToken **tokens)
+  const TSRule **tokens)
 {
   TSGrammar* grammar = malloc(sizeof(TSGrammar));
   grammar->name = name;

@@ -9,8 +9,8 @@
 #define SYM    ts_rule_new_sym
 #define SEQ    ts_rule_new_seq
 
-#define STR    ts_token_new_string
-#define PAT    ts_token_new_pattern
+#define STR    ts_rule_new_string
+#define PAT    ts_rule_new_pattern
 
 #define ID     ts_rule_id
 #define LEFT   ts_rule_left

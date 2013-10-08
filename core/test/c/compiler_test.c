@@ -21,7 +21,7 @@ TEST(TSCompiler)
     "token0", "token1", "token2"
   };
 
-  const TSToken *tokens[] = {
+  const TSRule *tokens[] = {
     PAT("\\d+"),
     PAT("\\w+"),
     STR("+")
