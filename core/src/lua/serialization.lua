@@ -1,7 +1,6 @@
 local util = require("util")
 local Grammar = require("grammar")
 local Rules = require("rules")
-local Tokens = require("tokens")
 
 local function map_pairs(t, fn)
   local result = {}
@@ -30,9 +29,9 @@ end
 
 local function read_token(json)
   if type(json) == 'string' then
-    return Tokens.String(json)
+    return Rules.String(json)
   else
-    return Tokens.Pattern(json[2])
+    return Rules.Pattern(json[2])
   end
 end
 

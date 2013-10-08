@@ -88,5 +88,111 @@ describe("Rules", function()
         }, rule:transitions())
       end)
     end)
+
+    describe("patterns", function()
+      it("compiles the regex to a tree of rules", function()
+        rule = Rules.Pattern("x*")
+        assert.are.same(
+          rule:transitions(),
+          Rules.Repeat(Rules.Char("x")):transitions())
+      end)
+    end)
+
+    describe("strings", function()
+      it("reduces to a sequence of characters", function()
+        rule = Rules.String("abcd")
+        assert.are.same(
+          rule:transitions(),
+          _seq(
+            _seq(
+              _seq(
+                _char("a"),
+                _char("b")),
+              _char("c")),
+            _char("d")):transitions())
+      end)
+    end)
+  end)
+
+  describe("expanding regex patterns", function()
+    local function expand_pattern(string)
+      return Rules.Pattern(string):expand()
+    end
+
+    it("parses simple strings", function()
+      rule = expand_pattern("lol")
+
+      assert.are.same(
+        _seq(_seq(_char("l"), _char("o")), _char("l")),
+        rule)
+    end)
+
+    it("parses choices", function()
+      rule = expand_pattern("lol|hah")
+
+      assert.are.same(
+        _choice(
+          _seq(_seq(_char("l"), _char("o")), _char("l")),
+          _seq(_seq(_char("h"), _char("a")), _char("h"))),
+        rule)
+    end)
+
+    it("parses character classes", function()
+      rule = expand_pattern("\\d")
+      assert.are.same(_class.digit(true), rule)
+
+      rule = expand_pattern("\\s")
+      assert.are.same(_class.space(true), rule)
+
+      rule = expand_pattern("\\w")
+      assert.are.same(_class.word(true), rule)
+
+      rule = expand_pattern("\\S")
+      assert.are.same(_class.space(false), rule)
+
+      rule = expand_pattern("\\W")
+      assert.are.same(_class.word(false), rule)
+    end)
+
+    it("raises an error for unknown character classes", function()
+      assert.has_error(function()
+        expand_pattern("\\z")
+      end, "Unknown character class: '\\z'")
+    end)
+
+    it("parses repetitions", function()
+      rule = expand_pattern("\\s*")
+      assert.are.same(_rep(_class.space(true)), rule)
+    end)
+
+    it("parses one-or-more repetitions", function()
+      rule = expand_pattern("x+")
+      assert.are.same(_seq(_char("x"), _rep(_char("x"))), rule)
+    end)
+  end)
+
+  describe("expanding strings", function()
+    local function expand_string(string)
+      return Rules.String(string):expand()
+    end
+
+    it("returns a sequence of characters", function()
+      rule = expand_string("abcd")
+
+      assert.are.same(
+        _seq(
+          _seq(
+            _seq(
+              _char("a"),
+              _char("b")),
+            _char("c")),
+          _char("d")),
+        rule)
+    end)
+
+    it("handles single characters", function()
+      rule = expand_string("a")
+      assert.are.same(_char("a"), rule)
+    end)
   end)
 end)

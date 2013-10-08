@@ -1,5 +1,11 @@
-local Rules = require("rules")
 local Struct = require("struct")
+local util = require("util")
+local Seq = require("rules/seq")
+local Choice = require("rules/choice")
+local End = require("rules/end")
+local Repeat = require("rules/repeat")
+local Char = require("rules/char")
+local CharClass = require("rules/char_class")
 
 local CHAR_CLASS_MAP = {
   d = { "digit", true },
@@ -21,16 +27,16 @@ local RegexParser = Struct({ 'input' }, {
     local term = self:term()
     if self:has_more() and self:peek() == '|' then
       self:consume(1)
-      return Rules.Choice(term, self:term())
+      return Choice(term, self:term())
     else
       return term
     end
   end,
 
   term = function(self)
-    local result = Rules.End
+    local result = End
     while self:has_more() and (self:peek() ~= '|') do
-      result = Rules.Seq(result, self:factor())
+      result = Seq(result, self:factor())
     end
     return result
   end,
@@ -41,10 +47,10 @@ local RegexParser = Struct({ 'input' }, {
       local char = self:peek()
       if char == '*' then
         self:consume(1)
-        result = Rules.Repeat(result)
+        result = Repeat(result)
       elseif char == '+' then
         self:consume(1)
-        result = Rules.Seq(result, Rules.Repeat(result))
+        result = Seq(result, Repeat(result))
       end
     end
     return result
@@ -58,9 +64,9 @@ local RegexParser = Struct({ 'input' }, {
       if not class_desc then
         error("Unknown character class: '\\" .. char .."'")
       end
-      return Rules.CharClass[class_desc[1]](class_desc[2])
+      return CharClass[class_desc[1]](class_desc[2])
     else
-      return Rules.Char(self:next())
+      return Char(self:next())
     end
   end,
 
@@ -85,31 +91,12 @@ local RegexParser = Struct({ 'input' }, {
   end
 })
 
-local String = Struct({ 'value' }, {
-  to_rule = function(self)
-    local result = Rules.End
-    for i = 1, string.len(self.value) do
-      result = Rules.Seq(result, Rules.Char(string.sub(self.value, i, i)))
-    end
-    return result
-  end,
-
-  transitions = function(self)
-    return self:to_rule():transitions()
-  end
-})
-
-local Pattern = Struct({ 'value' }, {
-  to_rule = function(self)
+return Struct({ 'value' }, {
+  expand = function(self)
     return RegexParser(self.value):main()
   end,
 
   transitions = function(self)
-    return self:to_rule():transitions()
+    return self:expand():transitions()
   end
 })
-
-return {
-  String = String,
-  Pattern = Pattern,
-}

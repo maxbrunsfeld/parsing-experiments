@@ -1,16 +1,15 @@
 require("spec_helper")
 
 local StateMachine = require("state_machine")
-local Tokens = require("tokens")
 local Rules = require("rules")
 local LrItem = require("lr_item")
 
 describe("StateMachine", function()
   local state_machine
   local tokens = {
-    { "t1", Tokens.String("ab") },
-    { "t2", Tokens.String("c") },
-    { "t3", Tokens.String("d") },
+    { "t1", Rules.String("ab") },
+    { "t2", Rules.String("c") },
+    { "t3", Rules.String("d") },
   }
 
   before_each(function()

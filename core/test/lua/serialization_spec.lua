@@ -2,7 +2,6 @@ require("spec_helper")
 
 local Grammar = require("grammar")
 local Rules = require("rules")
-local Tokens = require("tokens")
 local Serialization = require("serialization")
 
 describe("Grammar", function()
@@ -78,7 +77,7 @@ describe("Grammar", function()
 
       it("builds the right tokens", function()
         assert.is.equal('times', tokens[1][1])
-        assert.are.same(Tokens.String("*"), tokens[1][2])
+        assert.are.same(Rules.String("*"), tokens[1][2])
       end)
     end)
   end)
