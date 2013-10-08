@@ -17,7 +17,4 @@ struct TSGrammar {
   int rule_count;
   const char **rule_names;
   const TSRule **rules;
-  int token_count;
-  const char **token_names;
-  const TSRule **tokens;
 };

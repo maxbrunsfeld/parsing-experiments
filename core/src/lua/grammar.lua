@@ -1,3 +1,3 @@
 local Struct = require("struct")
 
-return Struct({ "name", "rules", "tokens" })
+return Struct({ "name", "rules" })

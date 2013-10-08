@@ -1,4 +1,4 @@
-P = require("pl.pretty")
+pp = require("pl.pretty").dump
 Grammar = require("grammar")
 Rules = require("rules")
 

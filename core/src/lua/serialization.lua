@@ -23,15 +23,11 @@ local function read_rule(json)
       return Rules.Seq(
         read_rule(json[2]),
         read_rule(json[3]))
+    elseif json[1] == 'PATTERN' then
+      return Rules.Pattern(json[2])
+    else
+      return Rules.String(json[2])
     end
-  end
-end
-
-local function read_token(json)
-  if type(json) == 'string' then
-    return Rules.String(json)
-  else
-    return Rules.Pattern(json[2])
   end
 end
 
@@ -39,8 +35,7 @@ return {
   read_grammar = function(json)
     return Grammar(
       util.alist_get(json, "name"),
-      map_pairs(util.alist_get(json, "rules"), read_rule),
-      map_pairs(util.alist_get(json, "tokens"), read_token))
+      map_pairs(util.alist_get(json, "rules"), read_rule))
   end,
 
   write_grammar = function()

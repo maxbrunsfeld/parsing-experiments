@@ -17,10 +17,9 @@ describe("Grammar", function()
         {"product",
           {"CHOICE",
             {"SEQ", "factor", {"SEQ", "times", "factor"}},
-            "factor"}}}},
-      {"tokens", {
-        {"times", "*"},
-        {"plus", "+"},
+            "factor"}},
+        {"times", {"STRING", "*"}},
+        {"plus", {"STRING", "+"}},
         {"number", {"PATTERN", "\\d+"}},
         {"name", {"PATTERN", "\\w+"}}}}}
 
@@ -40,7 +39,7 @@ describe("Grammar", function()
       end)
 
       it("gets one for each entry in the rules JSON", function()
-        assert.is.equal(2, table.getn(rules))
+        assert.is.equal(6, table.getn(rules))
       end)
 
       it("builds the right rules", function()
@@ -62,22 +61,10 @@ describe("Grammar", function()
             Rules.Sym("factor")),
           rules[2][2])
       end)
-    end)
-
-    describe("the tokens", function()
-      local tokens
-
-      before_each(function()
-        tokens = grammar.tokens
-      end)
-
-      it("gets one for each entry in the tokens JSON", function()
-        assert.is.equal(4, table.getn(tokens))
-      end)
 
       it("builds the right tokens", function()
-        assert.is.equal('times', tokens[1][1])
-        assert.are.same(Rules.String("*"), tokens[1][2])
+        assert.is.equal('times', rules[3][1])
+        assert.are.same(Rules.String("*"), rules[3][2])
       end)
     end)
   end)

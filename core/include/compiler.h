@@ -68,10 +68,7 @@ TSGrammar * ts_grammar_new(
   const char *name,
   const int rule_count,
   const char **rule_names,
-  const TSRule **rules,
-  const int token_count,
-  const char **token_names,
-  const TSRule **tokens);
+  const TSRule **rules);
 void ts_grammar_free(TSGrammar *grammar);
 void ts_grammar_compile();
 

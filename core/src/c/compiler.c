@@ -25,6 +25,5 @@ char * ts_compiler_c_code(TSCompiler *compiler)
   lua_getglobal(L, "grammar_to_c_code");
   ts_lua_push_grammar(L, compiler->grammar);
   lua_call(L, 1, 1);
-  const char *result = lua_tostring(L, -1);
-  return result;
+  return lua_tostring(L, -1);
 }
