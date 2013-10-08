@@ -50,6 +50,10 @@ local function alist_get(alist, key)
   end
 end
 
+local function alist_keys(t)
+  return pluck(t, 1)
+end
+
 local function alist_map(t, fn)
   return map(t, function(pair)
     return { pair[1], fn(pair[2]) }
@@ -77,14 +81,52 @@ local function alist_merge(t1, t2, fn)
   return result
 end
 
+function deepcompare(t1,t2,ignore_mt)
+  local ty1 = type(t1)
+  local ty2 = type(t2)
+  if ty1 ~= ty2 then
+    return false
+  end
+  if ty1 ~= 'table' and ty2 ~= 'table' then
+    return t1 == t2
+  end
+
+  local mt1 = debug.getmetatable(t1)
+  local mt2 = debug.getmetatable(t2)
+  if mt1 and mt1 == mt2 and mt1.__eq then
+    if not ignore_mt then
+      return t1 == t2
+    end
+  else
+    if t1 == t2 then
+      return true
+    end
+  end
+
+  for k1, v1 in pairs(t1) do
+    local v2 = t2[k1]
+    if v2 == nil or not deepcompare(v1, v2) then
+      return false
+    end
+  end
+  for k2, _ in pairs(t2) do
+    if t1[k2] == nil then
+      return false
+    end
+  end
+
+  return true
+end
+
 return {
   map = map,
   contains = contains,
+  deepcompare = deepcompare,
   push = push,
   mapcat = mapcat,
   pluck = pluck,
   alist_get = alist_get,
+  alist_keys = alist_keys,
   alist_map = alist_map,
-  alist_find = alist_find,
   alist_merge = alist_merge
 }

@@ -1,4 +1,4 @@
-pp = require("pl.pretty").dump
+P = require("pl.pretty")
 
 local R = require("rules")
 
@@ -9,3 +9,5 @@ _choice = R.Choice
 _class = R.CharClass
 _rep = R.Repeat
 _end = R.End
+_string = R.String
+_pattern = R.Pattern
