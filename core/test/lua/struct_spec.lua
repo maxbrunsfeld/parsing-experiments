@@ -1,3 +1,4 @@
+require("spec_helper")
 local Struct = require("struct")
 
 describe("Struct", function()
@@ -11,12 +12,16 @@ describe("Struct", function()
     do_stuff = function(self)
       return self.field_b + self.field_c
     end
+  }, {
+    do_static_stuff = function(x)
+      return x + 5
+    end
   })
 
   it("creates a constructor", function()
     local struct = SomeStruct(1, 2)
-    assert.equal(struct.field_a, 1)
-    assert.equal(struct.field_b, 2)
+    assert.equal(1, struct.field_a)
+    assert.equal(2, struct.field_b)
   end)
 
   it("assigns objects a class", function()
@@ -32,6 +37,10 @@ describe("Struct", function()
   it("works when an initialize method is not provided", function()
     local OtherStruct = Struct({ "a", "b" }, {})
     local struct = OtherStruct(1, 2)
+  end)
+
+  it("allows class methods", function()
+    assert.equal(8, SomeStruct.do_static_stuff(3))
   end)
 
   describe("equality", function()

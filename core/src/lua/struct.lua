@@ -1,8 +1,10 @@
-return function(fields, proto)
-  if not proto then proto = {} end
+return function(fields, methods, class_methods)
+  if not methods then methods = {} end
+  if not class_methods then class_methods = {} end
+  methods.class = class_methods
 
-  if not proto.initialize then
-    proto.initialize = function(self, ...)
+  if not methods.initialize then
+    methods.initialize = function(self, ...)
       local args = {...}
       for i, v in ipairs(fields) do
         if args[i] == nil then
@@ -22,13 +24,13 @@ return function(fields, proto)
     return true
   end
 
-  local function constructor(...)
-    local result = {}
-    setmetatable(result, { __index = proto, __eq = eq })
-    return result:initialize(...) or result
-  end
+  setmetatable(class_methods, {
+    __call = function(_, ...)
+      local result = {}
+      setmetatable(result, { __index = methods, __eq = eq })
+      return result:initialize(...) or result
+    end
+  })
 
-  proto.class = constructor
-
-  return constructor
+  return class_methods
 end

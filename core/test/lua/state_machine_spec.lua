@@ -25,7 +25,7 @@ describe("StateMachine", function()
     { "t5", t5 }}
 
   before_each(function()
-    state_machine = StateMachine(rules)
+    state_machine = StateMachine:build(rules)
     states = state_machine.states
   end)
 
@@ -52,7 +52,7 @@ describe("StateMachine", function()
   end)
 
   function assert_transition(n, transition_on, m)
-    local transitions = states[n]:transitions(rules)
+    local transitions = states[n].transitions
     local transition_to = util.alist_get(transitions, transition_on)
     assert(
       transition_to,
@@ -66,6 +66,6 @@ describe("StateMachine", function()
   end
 
   function assert_items(n, items)
-    assert.are.same(items, states[n].items)
+    assert.are.same(items, states[n].metadata)
   end
 end)
