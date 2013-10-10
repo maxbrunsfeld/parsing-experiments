@@ -33,10 +33,12 @@ end
 
 local function mapcat(t, fn)
   local result = {}
+  local k = 1
   for i, v in ipairs(t) do
     local term = fn(v)
     for j, v in ipairs(term) do
-      result[i + j - 1] = v
+      result[k] = v
+      k = k + 1
     end
   end
   return result
