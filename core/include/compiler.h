@@ -7,10 +7,7 @@
 extern "C" {
 #endif
 
-/* --- Types --- */
-typedef struct TSCompiler TSCompiler;
-typedef struct TSArray TSArray;
-typedef struct TSGrammar TSGrammar;
+/* --- Rules --- */
 typedef struct TSRule TSRule;
 typedef int TSSymbolId;
 typedef enum {
@@ -22,7 +19,6 @@ typedef enum {
   TSRuleTypePattern
 } TSRuleType;
 
-/* --- Rules --- */
 TSRule * ts_rule_new_sym(TSSymbolId id);
 TSRule * ts_rule_new_choice(TSRule *left, TSRule *right);
 TSRule * ts_rule_new_seq(TSRule *left, TSRule *right);
@@ -33,6 +29,8 @@ void ts_rule_free(TSRule *rule);
 int ts_rule_eq(TSRule *rule1, TSRule *rule2);
 
 /* --- Grammar --- */
+typedef struct TSGrammar TSGrammar;
+
 TSGrammar * ts_grammar_new(
   const char *name,
   const int rule_count,
@@ -42,6 +40,8 @@ void ts_grammar_free(TSGrammar *grammar);
 void ts_grammar_compile();
 
 /* --- Compiler --- */
+typedef struct TSCompiler TSCompiler;
+
 TSCompiler * ts_compiler_new(TSGrammar *grammar);
 char * ts_compiler_c_code(TSCompiler *compiler);
 void ts_compiler_free(TSCompiler *compiler);
