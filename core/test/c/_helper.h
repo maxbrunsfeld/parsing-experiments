@@ -12,8 +12,4 @@
 #define STR    ts_rule_new_string
 #define PAT    ts_rule_new_pattern
 
-#define ID     ts_rule_id
-#define LEFT   ts_rule_left
-#define RIGHT  ts_rule_right
-
 #endif

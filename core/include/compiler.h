@@ -43,12 +43,7 @@ void ts_array_clear(TSArray *array);
     element_name; \
     (element_name = (++index_name < __max_ ## index_name) ? (element_type *)ts_array_get(array, index_name) : NULL))
 
-/* --- Rule --- */
-typedef struct TSTransition {
-  TSSymbolId symbol_id;
-  TSRule *rule;
-} TSTransition;
-
+/* --- Rules --- */
 TSRule * ts_rule_new_sym(TSSymbolId id);
 TSRule * ts_rule_new_choice(TSRule *left, TSRule *right);
 TSRule * ts_rule_new_seq(TSRule *left, TSRule *right);
@@ -56,11 +51,6 @@ TSRule * ts_rule_new_string(const char *string);
 TSRule * ts_rule_new_pattern(const char *string);
 TSRule * ts_rule_new_end();
 void ts_rule_free(TSRule *rule);
-
-TSSymbolId ts_rule_id(TSRule *rule);
-TSRule * ts_rule_left(TSRule *rule);
-TSRule * ts_rule_right(TSRule *rule);
-TSArray * ts_rule_transitions(TSRule *rule);
 int ts_rule_eq(TSRule *rule1, TSRule *rule2);
 
 /* --- Grammar --- */
