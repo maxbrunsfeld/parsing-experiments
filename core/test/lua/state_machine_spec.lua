@@ -2,7 +2,6 @@ require("spec_helper")
 
 local StateMachine = require("state_machine")
 local Rules = require("rules")
-local LrItem = require("lr_item")
 local util = require("util")
 
 describe("StateMachine", function()
@@ -19,26 +18,28 @@ describe("StateMachine", function()
     state_machine = StateMachine:build(rules)
   end)
 
-  it("turns grammar rules into state transitions and push/accept actions", function()
+  it("turns grammar rules into state transitions and reduce/accept actions", function()
     assert.are.same({
-      SYM_t1 = { "ACCEPT" },
-      SYM_t2 = { "ACCEPT" },
+      SYM_t0 = { "ACCEPT" },
+      SYM_t1 = { "REDUCE", 1, "t0" },
+      SYM_t2 = { "REDUCE", 1, "t0" },
       SYM_t3 = {
-        SYM_t5 = { "PUSH", "t1" },
-        CHAR_c = { "PUSH", "t5" }
+        SYM_t5 = { "REDUCE", 2, "t1" },
+        CHAR_c = { "REDUCE", 1, "t5" }
       },
       SYM_t4 = {
-        SYM_t5 = { "PUSH", "t2" },
-        CHAR_c = { "PUSH", "t5" }
+        SYM_t5 = { "REDUCE", 2, "t2" },
+        CHAR_c = { "REDUCE", 1, "t5" }
       },
-      CHAR_a = { "PUSH", "t3" },
-      CHAR_b = { "PUSH", "t4" }
+      CHAR_a = { "REDUCE", 1, "t3" },
+      CHAR_b = { "REDUCE", 1, "t4" }
     }, state_machine:visualize())
   end)
 
   it("respects the ordering of choices", function()
     local transition_inputs = util.alist_keys(state_machine.states[1].transitions)
-    assert.are.same(_sym("t1"), transition_inputs[1])
-    assert.are.same(_sym("t2"), transition_inputs[2])
+    assert.are.same(_sym("t0"), transition_inputs[1])
+    assert.are.same(_sym("t1"), transition_inputs[2])
+    assert.are.same(_sym("t2"), transition_inputs[3])
   end)
 end)

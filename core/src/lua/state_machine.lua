@@ -3,6 +3,7 @@ local Rules = require("rules")
 local util = require("util")
 local Struct = require("struct")
 
+local AUGMENTED_RULE = {"__AUGMENTED_RULE__"}
 local State = Struct({ "metadata", "transitions", "action" })
 
 local StateMachine = Struct({ "states" }, {
@@ -23,13 +24,13 @@ local StateMachine = Struct({ "states" }, {
   visualize_state = function(self, state)
     if state.action then
       return state.action
+    else
+      local result = {}
+      for i, t in ipairs(state.transitions) do
+        result[self:visualize_transition_on(t[1])] = self:visualize_state(t[2])
+      end
+      return result
     end
-
-    local result = {}
-    for i, t in ipairs(state.transitions) do
-      result[self:visualize_transition_on(t[1])] = self:visualize_state(t[2])
-    end
-    return result
   end,
 
   visualize_transition_on = function(self, rule)
@@ -46,8 +47,7 @@ local StateMachine = Struct({ "states" }, {
 local Builder = Struct({ "machine", "rules" }, {
   build = function(self)
     local start_rule_name = self.rules[1][1]
-    -- print("start_rule_name: " ..  )
-    local start_item = self:item_at_start_of_rule(start_rule_name)
+    local start_item = LrItem(AUGMENTED_RULE, 0, Rules.Sym(start_rule_name))
     local state = self:build_state(start_item)
     self:add_state_to_machine(state)
   end,
@@ -75,10 +75,10 @@ local Builder = Struct({ "machine", "rules" }, {
   state_action = function(self, state)
     for i, item in ipairs(state.metadata) do
       if item.rule == Rules.End then
-        if item.name == self.rules[1][1] then
+        if item.name == AUGMENTED_RULE then
           return { "ACCEPT" }
         else
-          return { "PUSH", item.name }
+          return { "REDUCE", item.consumed_sym_count, item.name }
         end
       end
     end
@@ -109,7 +109,7 @@ local Builder = Struct({ "machine", "rules" }, {
 
   item_at_start_of_rule = function(self, rule_name)
     local rule = util.alist_get(self.rules, rule_name)
-    return LrItem(rule_name, rule)
+    return LrItem(rule_name, 0, rule)
   end
 })
 
