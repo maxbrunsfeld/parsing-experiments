@@ -22,7 +22,7 @@ end
 local function map(t, fn)
   local result = {}
   for i, v in ipairs(t) do
-    result[i] = fn(v)
+    result[i] = fn(v, i)
   end
   return result
 end
