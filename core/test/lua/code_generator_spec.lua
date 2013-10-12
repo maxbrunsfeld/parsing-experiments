@@ -6,8 +6,9 @@ describe("CodeGenerator", function()
 
   before_each(function()
     state_machine = StateMachine({})
-      :add_state(state1)
-      :add_state(state2)
+      :add_state(1)
+      :add_state(2)
+      :add_transition(1, "hi", 2)
     generator = CodeGenerator(state_machine, "the_grammar")
   end)
 

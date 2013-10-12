@@ -4,7 +4,7 @@ local Rules = require("rules")
 
 -- string utils
 local function join(strings, sep)
-  local result = strings[1]
+  local result = strings[1] or ""
   for i, string in ipairs(strings) do
     if i ~= 1 then
       result = result .. sep .. string
@@ -48,17 +48,18 @@ return Struct({ "state_machine", "grammar_name" }, {
   end,
 
   code_for_state = function(self, state, i)
-    return self:lines(util.map(state.transitions, function(transition)
-      return _if(self:code_for_transition_on(transition[1]), function()
+    return join(util.map(state.transitions, function(transition)
+      return self:_if(self:code_for_transition_on(transition[1]), function()
         return "stuff"
       end)
-    end))
+    end), "\n")
   end,
 
   code_for_transition_on = function(self, transition_on)
     if (transition_on.class == Rules.Char) then
       return "next_char == " .. self:char(transition_on.value)
     else
+      return "true"
     end
   end,
 

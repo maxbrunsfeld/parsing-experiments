@@ -62,12 +62,18 @@ local function alist_map(t, fn)
   end)
 end
 
-local function alist_find(t, entry)
-  for i, pair in ipairs(t) do
-    if pair[1] == entry then
-      return pair
+local function find(t, fn)
+  for i, entry in ipairs(t) do
+    if fn(entry) then
+      return entry
     end
   end
+end
+
+local function alist_find(t, entry)
+  return find(t, function(pair)
+    return pair[1] == entry
+  end)
 end
 
 local function alist_merge(t1, t2, fn)
@@ -122,6 +128,7 @@ end
 
 return {
   map = map,
+  find = find,
   contains = contains,
   deepcompare = deepcompare,
   push = push,

@@ -3,18 +3,38 @@ local Rules = require("rules")
 local util = require("util")
 local Struct = require("struct")
 
-local AUGMENTED_RULE = {"__AUGMENTED_RULE__"}
-local State = Struct({ "metadata", "transitions", "action" })
+local AUGMENTED_RULE = "__AUGMENTED_RULE__"
+local State = Struct({ "metadata", "action", "transitions" }, {
+  initialize = function(self, metadata, action)
+    self.metadata = metadata
+    self.action = action
+    self.transitions = {}
+  end
+})
 
 local StateMachine = Struct({ "states" }, {
-  add_state = function(self, state)
-    util.push(self.states, state)
+  add_state = function(self, metadata, action)
+    util.push(self.states, State(metadata, action))
     return self
   end,
 
-  add_transition = function(self, state1, transition_on, state2)
+  add_transition = function(self, metadata1, transition_on, metadata2)
+    local state1 = self:state_with_metadata(metadata1)
+    local state2 = self:state_with_metadata(metadata2)
+    if not state1 then error("add_transition - no state1 with metadata: " .. P.write(metadata1)) end
+    if not state2 then error("add_transition - no state2 with metadata: " .. P.write(metadata2)) end
     util.push(state1.transitions, { transition_on, state2 })
     return self
+  end,
+
+  has_state_with_metadata = function(self, metadata)
+    return self:state_with_metadata(metadata) ~= nil
+  end,
+
+  state_with_metadata = function(self, metadata)
+    return util.find(self.states, function(state)
+      return state.metadata == metadata
+    end)
   end,
 
   visualize = function(self)
@@ -48,32 +68,34 @@ local Builder = Struct({ "machine", "rules" }, {
   build = function(self)
     local start_rule_name = self.rules[1][1]
     local start_item = LrItem(AUGMENTED_RULE, 0, Rules.Sym(start_rule_name))
-    local state = self:build_state(start_item)
-    self:add_state_to_machine(state)
+    local item_set = self:build_item_set(start_item)
+    self:add_state_for_item_set(item_set)
   end,
 
-  add_state_to_machine = function(self, state)
-    if not util.contains(self.machine.states, state) then
-      self.machine:add_state(state)
-
-      local transitions = self:state_transitions(state)
+  add_state_for_item_set = function(self, item_set)
+    if not self.machine:has_state_with_metadata(item_set) then
+      local action = self:action_for_item_set(item_set)
+      self.machine:add_state(item_set, action)
+      local transitions = self:transitions_for_item_set(item_set)
       for i, transition in ipairs(transitions) do
-        self:add_state_to_machine(transition[2], self.rules)
-        self.machine:add_transition(state, transition[1], transition[2])
+        local transition_on = transition[1]
+        local new_item_set = transition[2]
+        self:add_state_for_item_set(new_item_set)
+        self.machine:add_transition(item_set, transition_on, new_item_set)
       end
     end
   end,
 
-  state_transitions = function(self, state)
-    return util.mapcat(state.metadata, function(item)
+  transitions_for_item_set = function(self, item_set)
+    return util.mapcat(item_set, function(item)
       return util.map(item:transitions(), function(transition)
-        return { transition[1], self:build_state(transition[2]) }
+        return { transition[1], self:build_item_set(transition[2]) }
       end)
     end)
   end,
 
-  state_action = function(self, state)
-    for i, item in ipairs(state.metadata) do
+  action_for_item_set = function(self, item_set)
+    for i, item in ipairs(item_set) do
       if item.rule == Rules.End then
         if item.name == AUGMENTED_RULE then
           return { "ACCEPT" }
@@ -84,32 +106,29 @@ local Builder = Struct({ "machine", "rules" }, {
     end
   end,
 
-  build_state = function(self, initial_item)
-    local result = State({}, {}, {})
-    self:add_item_to_state(initial_item, result)
-    result.action = self:state_action(result)
+  build_item_set = function(self, initial_item)
+    local result = {}
+    self:add_item_to_set(initial_item, result)
     return result
   end,
 
-  add_item_to_state = function(self, item, state)
-    if not util.contains(state.metadata, item) then
-      util.push(state.metadata, item)
-
+  add_item_to_set = function(self, item, set)
+    if not util.contains(set, item) then
+      util.push(set, item)
       local transitions = item:transitions()
       for i, pair in ipairs(transitions) do
         local transition_on = pair[1]
         if transition_on.class == Rules.Sym then
           local transition_name = transition_on.name
           local transition_item = self:item_at_start_of_rule(transition_name)
-          self:add_item_to_state(transition_item, state)
+          self:add_item_to_set(transition_item, set)
         end
       end
     end
   end,
 
   item_at_start_of_rule = function(self, rule_name)
-    local rule = util.alist_get(self.rules, rule_name)
-    return LrItem(rule_name, 0, rule)
+    return LrItem(rule_name, 0, util.alist_get(self.rules, rule_name))
   end
 })
 
