@@ -1,6 +1,6 @@
 require("spec_helper")
 
-local StateMachine = require("state_machine")
+local LR = require("lr")
 local Rules = require("rules")
 local util = require("util")
 
@@ -15,7 +15,7 @@ describe("StateMachine", function()
     { "t5", _string("c") }}
 
   before_each(function()
-    state_machine = StateMachine:build(rules)
+    state_machine = LR.build_state_machine(rules)
   end)
 
   it("turns grammar rules into state transitions and reduce/accept actions", function()
