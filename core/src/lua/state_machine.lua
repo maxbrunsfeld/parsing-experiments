@@ -1,4 +1,4 @@
-local LrItem = require("lr_item")
+local LRItem = require("lr_item")
 local Rules = require("rules")
 local util = require("util")
 local Struct = require("struct")
@@ -19,19 +19,22 @@ local StateMachine = Struct({ "states" }, {
   end,
 
   add_transition = function(self, metadata1, transition_on, metadata2)
-    local state1 = self:state_with_metadata(metadata1)
-    local state2 = self:state_with_metadata(metadata2)
-    if not state1 then error("add_transition - no state1 with metadata: " .. P.write(metadata1)) end
-    if not state2 then error("add_transition - no state2 with metadata: " .. P.write(metadata2)) end
-    util.push(state1.transitions, { transition_on, state2 })
+    util.push(
+      self:state_with_metadata(metadata1).transitions,
+      { transition_on, self:state_with_metadata(metadata2) })
     return self
   end,
 
-  has_state_with_metadata = function(self, metadata)
-    return self:state_with_metadata(metadata) ~= nil
+  state_with_metadata = function(self, metadata)
+    return self:_state_with_metadata(metadata) or
+      error("add_transition - no state with metadata: " .. P.write(metadata))
   end,
 
-  state_with_metadata = function(self, metadata)
+  has_state_with_metadata = function(self, metadata)
+    return self:_state_with_metadata(metadata) ~= nil
+  end,
+
+  _state_with_metadata = function(self, metadata)
     return util.find(self.states, function(state)
       return state.metadata == metadata
     end)
@@ -67,8 +70,8 @@ local StateMachine = Struct({ "states" }, {
 local Builder = Struct({ "machine", "rules" }, {
   build = function(self)
     local start_rule_name = self.rules[1][1]
-    local start_item = LrItem(AUGMENTED_RULE, 0, Rules.Sym(start_rule_name))
-    local item_set = self:build_item_set(start_item)
+    local start_item = LRItem(AUGMENTED_RULE, 0, Rules.Sym(start_rule_name))
+    local item_set = LRItem.build_item_set(start_item, self.rules)
     self:add_state_for_item_set(item_set)
   end,
 
@@ -76,7 +79,7 @@ local Builder = Struct({ "machine", "rules" }, {
     if not self.machine:has_state_with_metadata(item_set) then
       local action = self:action_for_item_set(item_set)
       self.machine:add_state(item_set, action)
-      local transitions = self:transitions_for_item_set(item_set)
+      local transitions = LRItem.transitions_for_item_set(item_set, self.rules)
       for i, transition in ipairs(transitions) do
         local transition_on = transition[1]
         local new_item_set = transition[2]
@@ -84,14 +87,6 @@ local Builder = Struct({ "machine", "rules" }, {
         self.machine:add_transition(item_set, transition_on, new_item_set)
       end
     end
-  end,
-
-  transitions_for_item_set = function(self, item_set)
-    return util.mapcat(item_set, function(item)
-      return util.map(item:transitions(), function(transition)
-        return { transition[1], self:build_item_set(transition[2]) }
-      end)
-    end)
   end,
 
   action_for_item_set = function(self, item_set)
@@ -104,31 +99,6 @@ local Builder = Struct({ "machine", "rules" }, {
         end
       end
     end
-  end,
-
-  build_item_set = function(self, initial_item)
-    local result = {}
-    self:add_item_to_set(initial_item, result)
-    return result
-  end,
-
-  add_item_to_set = function(self, item, set)
-    if not util.contains(set, item) then
-      util.push(set, item)
-      local transitions = item:transitions()
-      for i, pair in ipairs(transitions) do
-        local transition_on = pair[1]
-        if transition_on.class == Rules.Sym then
-          local transition_name = transition_on.name
-          local transition_item = self:item_at_start_of_rule(transition_name)
-          self:add_item_to_set(transition_item, set)
-        end
-      end
-    end
-  end,
-
-  item_at_start_of_rule = function(self, rule_name)
-    return LrItem(rule_name, 0, util.alist_get(self.rules, rule_name))
   end
 })
 
