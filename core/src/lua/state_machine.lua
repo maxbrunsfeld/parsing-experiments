@@ -1,9 +1,8 @@
-local LRItem = require("lr_item")
+local LR = require("lr")
 local Rules = require("rules")
 local util = require("util")
 local Struct = require("struct")
 
-local AUGMENTED_RULE = "__AUGMENTED_RULE__"
 local State = Struct({ "metadata", "action", "transitions" }, {
   initialize = function(self, metadata, action)
     self.metadata = metadata
@@ -25,13 +24,13 @@ local StateMachine = Struct({ "states" }, {
     return self
   end,
 
-  state_with_metadata = function(self, metadata)
-    return self:_state_with_metadata(metadata) or
-      error("add_transition - no state with metadata: " .. P.write(metadata))
-  end,
-
   has_state_with_metadata = function(self, metadata)
     return self:_state_with_metadata(metadata) ~= nil
+  end,
+
+  state_with_metadata = function(self, metadata)
+    return self:_state_with_metadata(metadata) or
+      error("No state with metadata: " .. P.write(metadata))
   end,
 
   _state_with_metadata = function(self, metadata)
@@ -67,11 +66,13 @@ local StateMachine = Struct({ "states" }, {
   end
 })
 
+local AUGMENTED_RULE = "__AUGMENTED_RULE__"
+
 local Builder = Struct({ "machine", "rules" }, {
   build = function(self)
     local start_rule_name = self.rules[1][1]
-    local start_item = LRItem(AUGMENTED_RULE, 0, Rules.Sym(start_rule_name))
-    local item_set = LRItem.build_item_set(start_item, self.rules)
+    local start_item = LR.Item(AUGMENTED_RULE, 0, Rules.Sym(start_rule_name))
+    local item_set = LR.ItemSet(start_item, self.rules)
     self:add_state_for_item_set(item_set)
   end,
 
@@ -79,7 +80,7 @@ local Builder = Struct({ "machine", "rules" }, {
     if not self.machine:has_state_with_metadata(item_set) then
       local action = self:action_for_item_set(item_set)
       self.machine:add_state(item_set, action)
-      local transitions = LRItem.transitions_for_item_set(item_set, self.rules)
+      local transitions = item_set:transitions(self.rules)
       for i, transition in ipairs(transitions) do
         local transition_on = transition[1]
         local new_item_set = transition[2]
