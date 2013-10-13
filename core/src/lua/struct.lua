@@ -15,19 +15,24 @@ return function(fields, methods, class_methods)
     end
   end
 
-  local function eq(struct1, struct2)
-    for i, field in ipairs(fields) do
-      if struct1[field] ~= struct2[field] then
+  if not methods.eq then
+    function methods:eq(other)
+      if other.class ~= class_methods then
         return false
       end
+      for i, field in ipairs(fields) do
+        if self[field] ~= other[field] then
+          return false
+        end
+      end
+      return true
     end
-    return true
   end
 
   setmetatable(class_methods, {
     __call = function(_, ...)
       local result = {}
-      setmetatable(result, { __index = methods, __eq = eq })
+      setmetatable(result, { __index = methods, __eq = methods.eq })
       return result:initialize(...) or result
     end
   })
