@@ -19,6 +19,8 @@ describe("CodeGenerator", function()
   end)
 
   it("works", function()
+    print("-----")
     print(generator:code())
+    print("-----")
   end)
 end)

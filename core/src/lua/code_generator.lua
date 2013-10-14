@@ -53,9 +53,10 @@ return Struct({ "state_machine", "grammar_name" }, {
       function()
         return join(
           util.map(self.state_machine.states, function(state)
-            return self:labeled(self:label_for_state(state), function()
-              return self:code_for_state(state)
-            end)
+            return join({
+              self:label(self:label_for_state(state)),
+              self:code_for_state(state)
+            }, "\n")
           end), "\n")
       end)
   end,
@@ -70,13 +71,12 @@ return Struct({ "state_machine", "grammar_name" }, {
 
   code_for_state_action = function(self, action)
     if action == StateMachine.Actions.Accept then
-      return self:statements({
-        self:fn_call("accept")
-      })
+      return self:statement(self:fn_call("accept"))
     elseif action.class == StateMachine.Actions.Reduce then
-      return self:statements({
-        self:fn_call("reduce", { action.symbol_count, self:sym(action.new_sym) })
-      })
+      return self:statement(self:fn_call("reduce", {
+        action.symbol_count,
+        self:sym(action.new_sym)
+      }))
     else
       error("Unknown action: " .. P.dump(action))
     end
@@ -85,7 +85,10 @@ return Struct({ "state_machine", "grammar_name" }, {
   code_for_state_transitions = function(self, transitions)
     return join(util.map(transitions, function(transition)
       return self:_if(self:code_for_transition_on(transition[1]), function()
-        return self:_goto(self:label_for_state(transition[2]))
+        return join({
+          self:statement(self:fn_call("consume")),
+          self:statement(self:_goto(self:label_for_state(transition[2]))),
+        }, "\n")
       end)
     end), "\n")
   end,
@@ -123,33 +126,32 @@ return Struct({ "state_machine", "grammar_name" }, {
   end,
 
   _goto = function(self, label_name)
-    return self:statements({ "goto " .. label_name })
+    return "goto " .. label_name
   end,
 
   char = function(self, value)
     return "'" .. value .. "'"
   end,
 
-  labeled = function(self, label_name, code_fn)
-    return label_name .. ":\n" .. code_fn()
+  label = function(self, label_name)
+    return label_name .. ":"
   end,
 
   _if = function(self, condition, body_fn)
-    return self:lines({
-      "if (" .. condition .. ") {",
+    return join({
+      self:line("if (" .. condition .. ") {"),
       self:indented(body_fn),
-      "}"
-    })
+      self:line("}")
+    }, "\n")
   end,
 
   _function = function(self, return_type, fn_name, params, body_fn)
-    local args = "<args>"
-    return self:lines({
-      return_type ..  " " .. fn_name ..
-      "(" .. join(params, ", ") .. ")",
+    return join({
+      return_type ..  " " .. fn_name ..  "(" .. join(params, ", ") .. ")",
       "{",
       self:indented(body_fn),
-      "}"})
+      "}"
+    }, "\n")
   end,
 
   indented = function(self, fn)
@@ -159,20 +161,12 @@ return Struct({ "state_machine", "grammar_name" }, {
     return result
   end,
 
-  statements = function(self, inputs)
-    return self:lines(util.map(inputs, function(input)
-      return input .. ";"
-    end))
+  statement = function(self, input)
+    return self:line(input .. ";")
   end,
 
-  lines = function(self, inputs)
-    return join(util.map(inputs, function(line)
-      if (type(line) == "table") then
-        self:lines(line)
-      else
-        return string.rep(" ", (self.indent * SHIFT_WIDTH)) .. line
-      end
-    end), "\n")
+  line = function(self, input)
+    return string.rep(" ", (self.indent * SHIFT_WIDTH)) .. input
   end
 })
 
