@@ -1,24 +1,22 @@
 local Struct = require("struct")
 local End = require("rules/end")
 
-return (function()
-  local function make_char_class(name)
-    return Struct({ "coefficient" }, {
-      name = name,
-
-      transitions = function(self)
-        return {{ self, End }}
-      end,
-
-      to_string = function(self)
-        return "CLASS_" .. name
-      end
-    })
+local function builder(name)
+  return function(self, coefficient)
+    return self(name, coefficient)
   end
+end
 
-  return {
-    digit = make_char_class("digit"),
-    space = make_char_class("space"),
-    word = make_char_class("word")
-  }
-end)()
+return Struct({ "name", "coefficient" }, {
+  transitions = function(self)
+    return {{ self, End }}
+  end,
+
+  to_string = function(self)
+    return "CLASS_" .. self.name
+  end
+}, {
+  digit = builder("digit"),
+  space = builder("space"),
+  word = builder("word")
+})

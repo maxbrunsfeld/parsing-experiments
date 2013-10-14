@@ -26,9 +26,9 @@ describe("Rules", function()
 
     describe("character classes", function()
       it("ends after the character class is consumed", function()
-        rule = _class.space(true)
+        rule = _class:space(true)
         assert.are.same({
-          { _class.space(true), _end }
+          { _class:space(true), _end }
         }, rule:transitions())
       end)
     end)
@@ -139,19 +139,19 @@ describe("Rules", function()
 
     it("parses character classes", function()
       rule = expand_pattern("\\d")
-      assert.are.same(_class.digit(true), rule)
+      assert.are.same(_class:digit(true), rule)
 
       rule = expand_pattern("\\s")
-      assert.are.same(_class.space(true), rule)
+      assert.are.same(_class:space(true), rule)
 
       rule = expand_pattern("\\w")
-      assert.are.same(_class.word(true), rule)
+      assert.are.same(_class:word(true), rule)
 
       rule = expand_pattern("\\S")
-      assert.are.same(_class.space(false), rule)
+      assert.are.same(_class:space(false), rule)
 
       rule = expand_pattern("\\W")
-      assert.are.same(_class.word(false), rule)
+      assert.are.same(_class:word(false), rule)
     end)
 
     it("raises an error for unknown character classes", function()
@@ -162,7 +162,7 @@ describe("Rules", function()
 
     it("parses repetitions", function()
       rule = expand_pattern("\\s*")
-      assert.are.same(_rep(_class.space(true)), rule)
+      assert.are.same(_rep(_class:space(true)), rule)
     end)
 
     it("parses one-or-more repetitions", function()

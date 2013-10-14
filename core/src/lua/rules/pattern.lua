@@ -64,7 +64,7 @@ local RegexParser = Struct({ 'input' }, {
       if not class_desc then
         error("Unknown character class: '\\" .. char .."'")
       end
-      return CharClass[class_desc[1]](class_desc[2])
+      return CharClass[class_desc[1]](CharClass, class_desc[2])
     else
       return Char(self:next())
     end
