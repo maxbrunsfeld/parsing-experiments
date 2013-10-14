@@ -43,7 +43,7 @@ return Struct({ "states" }, {
 
   visualize_state = function(self, state)
     if state.action then
-      return state.action
+      return state.action:to_string()
     else
       local result = {}
       for i, t in ipairs(state.transitions) do
@@ -52,4 +52,18 @@ return Struct({ "states" }, {
       return result
     end
   end
+}, {
+  Actions = {
+    Reduce = Struct({ "symbol_count", "new_sym" }, {
+      to_string = function(self)
+        return "REDUCE " .. self.symbol_count .. " " .. self.new_sym
+      end
+    }),
+
+    Accept = Struct({}, {
+      to_string = function()
+        return "ACCEPT"
+      end
+    })()
+  }
 })

@@ -20,19 +20,19 @@ describe("StateMachine", function()
 
   it("turns grammar rules into state transitions and reduce/accept actions", function()
     assert.are.same({
-      SYM_t0 = { "ACCEPT" },
-      SYM_t1 = { "REDUCE", 1, "t0" },
-      SYM_t2 = { "REDUCE", 1, "t0" },
+      SYM_t0 = "ACCEPT",
+      SYM_t1 = "REDUCE 1 t0",
+      SYM_t2 = "REDUCE 1 t0",
       SYM_t3 = {
-        SYM_t5 = { "REDUCE", 2, "t1" },
-        CHAR_c = { "REDUCE", 1, "t5" }
+        SYM_t5 = "REDUCE 2 t1",
+        CHAR_c = "REDUCE 1 t5"
       },
       SYM_t4 = {
-        SYM_t5 = { "REDUCE", 2, "t2" },
-        CHAR_c = { "REDUCE", 1, "t5" }
+        SYM_t5 = "REDUCE 2 t2",
+        CHAR_c = "REDUCE 1 t5"
       },
-      CHAR_a = { "REDUCE", 1, "t3" },
-      CHAR_b = { "REDUCE", 1, "t4" }
+      CHAR_a = "REDUCE 1 t3",
+      CHAR_b = "REDUCE 1 t4"
     }, state_machine:visualize())
   end)
 

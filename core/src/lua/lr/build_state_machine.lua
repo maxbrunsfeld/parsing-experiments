@@ -39,9 +39,9 @@ local StateMachineBuilder = Struct({ "rules" }, {
     for i, item in ipairs(item_set) do
       if item.rule == Rules.End then
         if item.name == AUGMENTED_RULE then
-          return { "ACCEPT" }
+          return StateMachine.Actions.Accept
         else
-          return { "REDUCE", item.consumed_sym_count, item.name }
+          return StateMachine.Actions.Reduce(item.consumed_sym_count, item.name)
         end
       end
     end
