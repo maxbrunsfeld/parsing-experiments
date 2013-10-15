@@ -38,12 +38,15 @@ return Struct({ "state_machine", "grammar_name" }, {
   code = function(self)
     return join({
       self:includes(), "",
-      self:parse_function()
+      self:parse_function(), ""
     }, "\n")
   end,
 
   includes = function(self)
-    return [[#include <tree_sitter/runtime.h>]]
+    return join({
+      self:include_sys("tree_sitter/runtime"),
+      self:include_sys("ctype")
+    }, "\n")
   end,
 
   parse_function = function(self)
@@ -83,14 +86,21 @@ return Struct({ "state_machine", "grammar_name" }, {
   end,
 
   code_for_state_transitions = function(self, transitions)
-    return join(util.map(transitions, function(transition)
+    local parts = util.map(transitions, function(transition)
       return self:_if(self:code_for_transition_on(transition[1]), function()
-        return join({
-          self:statement(self:fn_call("consume")),
-          self:statement(self:_goto(self:label_for_state(transition[2]))),
-        }, "\n")
+        if transition[1].class == Rules.Sym then
+          return self:statement(self:_goto(self:label_for_state(transition[2])))
+        else
+          return join({
+            self:statement(self:fn_call("shift")),
+            self:statement(self:_goto(self:label_for_state(transition[2]))),
+          }, "\n")
+        end
       end)
-    end), "\n")
+    end)
+
+    util.push(parts, self:statement(self:fn_call("error")));
+    return join(parts, "\n")
   end,
 
   label_for_state = function(self, state, i)
@@ -163,6 +173,10 @@ return Struct({ "state_machine", "grammar_name" }, {
 
   statement = function(self, input)
     return self:line(input .. ";")
+  end,
+
+  include_sys = function(self, lib_name)
+    return "#include <" .. lib_name .. ".h>"
   end,
 
   line = function(self, input)

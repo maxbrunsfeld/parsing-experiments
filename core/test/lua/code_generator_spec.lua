@@ -14,13 +14,45 @@ describe("CodeGenerator", function()
       :add_transition(1, Rules.Char("a"), 2)
       :add_transition(1, Rules.CharClass:digit(true), 3)
       :add_transition(1, Rules.Sym("rule1"), 4)
+      :add_transition(1, Rules.Sym("rule2"), 4)
 
     generator = CodeGenerator(state_machine, "the_grammar")
   end)
 
-  it("works", function()
-    print("-----")
-    print(generator:code())
-    print("-----")
+  it("includes the write C libraries", function()
+    assert.equal([[
+#include <tree_sitter/runtime.h>
+#include <ctype.h>]],
+      generator:includes())
+  end)
+
+  it("generates a parsing function", function()
+    assert.equal([[
+TSNode * the_grammar(const char ** input_string)
+{
+state_1:
+    if (lookahead_char == 'a') {
+        shift();
+        goto state_2;
+    }
+    if (isdigit(lookahead_char)) {
+        shift();
+        goto state_3;
+    }
+    if (lookahead_sym == SYM_rule1) {
+        goto state_4;
+    }
+    if (lookahead_sym == SYM_rule2) {
+        goto state_4;
+    }
+    error();
+state_2:
+    reduce(1, SYM_rule1);
+state_3:
+    reduce(1, SYM_rule2);
+state_4:
+    accept();
+}]], 
+      generator:parse_function())
   end)
 end)
