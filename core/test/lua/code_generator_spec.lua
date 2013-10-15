@@ -19,15 +19,11 @@ describe("CodeGenerator", function()
     generator = CodeGenerator(state_machine, "the_grammar")
   end)
 
-  it("includes the write C libraries", function()
-    assert.equal([[
-#include <tree_sitter/runtime.h>
-#include <ctype.h>]],
-      generator:includes())
-  end)
-
   it("generates a parsing function", function()
     assert.equal([[
+#include <tree_sitter/runtime.h>
+#include <ctype.h>
+
 TSNode * the_grammar(const char ** input_string)
 {
 state_1:
@@ -53,6 +49,6 @@ state_3:
 state_4:
     accept();
 }]], 
-      generator:parse_function())
+      generator:code())
   end)
 end)

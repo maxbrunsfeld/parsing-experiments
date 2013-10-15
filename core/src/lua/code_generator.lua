@@ -2,19 +2,19 @@ local Struct = require("Struct")
 local util = require("util")
 local Rules = require("rules")
 local StateMachine = require("state_machine")
+local c = require("c_code")
 
 -- string utils
-local function join(strings, sep)
-  local result = strings[1] or ""
-  for i, string in ipairs(strings) do
-    if i ~= 1 then
-      result = result .. sep .. string
+local function concat(...)
+  local result = {}
+  for i, table in ipairs({...}) do
+    for i, entry in ipairs(table) do
+      result[#result + 1] = entry
     end
   end
   return result
 end
 
-local SHIFT_WIDTH = 4
 local LOOKAHEAD_CHAR = "lookahead_char"
 local LOOKAHEAD_SYM = "lookahead_sym"
 
@@ -36,32 +36,29 @@ return Struct({ "state_machine", "grammar_name" }, {
   end,
 
   code = function(self)
-    return join({
-      self:includes(), "",
-      self:parse_function(), ""
-    }, "\n")
+    return c.render(concat(
+      self:includes(),
+      { "" },
+      self:parse_function()
+    ))
   end,
 
   includes = function(self)
-    return join({
-      self:include_sys("tree_sitter/runtime"),
-      self:include_sys("ctype")
-    }, "\n")
+    return {
+      c.include_sys("tree_sitter/runtime"),
+      c.include_sys("ctype")
+    }
   end,
 
   parse_function = function(self)
-    return self:_function(
+    return c.fn_def(
       "TSNode *", self.grammar_name,
       {"const char ** input_string"},
-      function()
-        return join(
-          util.map(self.state_machine.states, function(state)
-            return join({
-              self:label(self:label_for_state(state)),
-              self:code_for_state(state)
-            }, "\n")
-          end), "\n")
-      end)
+      util.mapcat(self.state_machine.states, function(state)
+        return concat(
+          { c.label(self:label_for_state(state)) },
+          self:code_for_state(state))
+      end))
   end,
 
   code_for_state = function(self, state, i)
@@ -74,33 +71,41 @@ return Struct({ "state_machine", "grammar_name" }, {
 
   code_for_state_action = function(self, action)
     if action == StateMachine.Actions.Accept then
-      return self:statement(self:fn_call("accept"))
+      return {
+        c.statement(c.fn_call("accept"))
+      }
     elseif action.class == StateMachine.Actions.Reduce then
-      return self:statement(self:fn_call("reduce", {
-        action.symbol_count,
-        self:sym(action.new_sym)
-      }))
+      return {
+        c.statement(c.fn_call("reduce", {
+          action.symbol_count,
+          self:sym(action.new_sym)
+        }))
+      }
     else
-      error("Unknown action: " .. P.dump(action))
+      error("Unknown action: " .. P.write(action))
     end
   end,
 
   code_for_state_transitions = function(self, transitions)
-    local parts = util.map(transitions, function(transition)
-      return self:_if(self:code_for_transition_on(transition[1]), function()
-        if transition[1].class == Rules.Sym then
-          return self:statement(self:_goto(self:label_for_state(transition[2])))
-        else
-          return join({
-            self:statement(self:fn_call("shift")),
-            self:statement(self:_goto(self:label_for_state(transition[2]))),
-          }, "\n")
-        end
-      end)
-    end)
+    return concat(util.mapcat(transitions, function(transition)
+      local condition = self:code_for_transition_on(transition[1])
 
-    util.push(parts, self:statement(self:fn_call("error")));
-    return join(parts, "\n")
+      local body
+      if transition[1].class == Rules.Sym then
+        body = {
+          c._goto(self:label_for_state(transition[2]))
+        }
+      else
+        body = {
+          c.statement(c.fn_call("shift")),
+          c._goto(self:label_for_state(transition[2])),
+        }
+      end
+
+      return c._if(condition, body)
+    end), {
+      c.statement(c.fn_call("error"))
+    })
   end,
 
   label_for_state = function(self, state, i)
@@ -109,9 +114,9 @@ return Struct({ "state_machine", "grammar_name" }, {
 
   code_for_transition_on = function(self, transition_on)
     if (transition_on.class == Rules.Char) then
-      return LOOKAHEAD_CHAR .. " == " .. self:char(transition_on.value)
+      return LOOKAHEAD_CHAR .. " == " .. c.char(transition_on.value)
     elseif (transition_on.class == Rules.CharClass) then
-      return self:fn_call(self:fn_for_char_class(transition_on.name), { LOOKAHEAD_CHAR })
+      return c.fn_call(self:fn_for_char_class(transition_on.name), { LOOKAHEAD_CHAR })
     elseif (transition_on.class == Rules.Sym) then
       return LOOKAHEAD_SYM .. " == " .. self:sym(transition_on.name)
     else
@@ -126,61 +131,5 @@ return Struct({ "state_machine", "grammar_name" }, {
 
   sym = function(self, name)
     return "SYM_" .. name
-  end,
-
-  -- generic C code helpers
-
-  fn_call = function(self, fn_name, args)
-    local args_string = args and join(args, ", ") or ""
-    return fn_name .. "(" .. args_string .. ")"
-  end,
-
-  _goto = function(self, label_name)
-    return "goto " .. label_name
-  end,
-
-  char = function(self, value)
-    return "'" .. value .. "'"
-  end,
-
-  label = function(self, label_name)
-    return label_name .. ":"
-  end,
-
-  _if = function(self, condition, body_fn)
-    return join({
-      self:line("if (" .. condition .. ") {"),
-      self:indented(body_fn),
-      self:line("}")
-    }, "\n")
-  end,
-
-  _function = function(self, return_type, fn_name, params, body_fn)
-    return join({
-      return_type ..  " " .. fn_name ..  "(" .. join(params, ", ") .. ")",
-      "{",
-      self:indented(body_fn),
-      "}"
-    }, "\n")
-  end,
-
-  indented = function(self, fn)
-    self.indent = self.indent + 1
-    local result = fn()
-    self.indent = self.indent - 1
-    return result
-  end,
-
-  statement = function(self, input)
-    return self:line(input .. ";")
-  end,
-
-  include_sys = function(self, lib_name)
-    return "#include <" .. lib_name .. ".h>"
-  end,
-
-  line = function(self, input)
-    return string.rep(" ", (self.indent * SHIFT_WIDTH)) .. input
   end
 })
-
