@@ -114,11 +114,11 @@ return Struct({ "state_machine", "grammar_name" }, {
 
   code_for_transition_on = function(self, transition_on)
     if (transition_on.class == Rules.Char) then
-      return LOOKAHEAD_CHAR .. " == " .. c.char(transition_on.value)
+      return c.equals(LOOKAHEAD_CHAR, c.char(transition_on.value))
     elseif (transition_on.class == Rules.CharClass) then
       return c.fn_call(self:fn_for_char_class(transition_on.name), { LOOKAHEAD_CHAR })
     elseif (transition_on.class == Rules.Sym) then
-      return LOOKAHEAD_SYM .. " == " .. self:sym(transition_on.name)
+      return c.equals(LOOKAHEAD_SYM, self:sym(transition_on.name))
     else
       error("Unknown transition type: " .. P.write(transition_on))
     end

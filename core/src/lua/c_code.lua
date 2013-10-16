@@ -22,6 +22,10 @@ local function concat(table1, ...)
   return result
 end
 
+function equals(left, right)
+  return left .. " == " .. right
+end
+
 function render(lines)
   return join(util.map(lines, function(line)
     if type(line) == 'string' then
@@ -94,6 +98,7 @@ return {
   _goto = _goto,
   _if = _if,
   char = char,
+  equals = equals,
   fn_call = fn_call,
   fn_def = fn_def,
   include_sys = include_sys,
