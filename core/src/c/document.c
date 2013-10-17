@@ -1,10 +1,10 @@
-#include "runtime.h"
+#include "document.h"
 #include "check.h"
 #include <stdlib.h>
 
 struct TSDocument {
   char *text;
-  TSNode *tree;
+  TSTree *tree;
 };
 
 TSDocument * ts_document_new()
@@ -17,7 +17,7 @@ TSDocument * ts_document_new()
 
 void ts_document_free(TSDocument *doc)
 {
-  if (doc->tree) ts_node_free(doc->tree);
+  if (doc->tree) ts_tree_free(doc->tree);
   free(doc);
 }
 
@@ -34,11 +34,4 @@ TSNode * ts_document_tree(TSDocument *doc)
 char * ts_document_text(TSDocument *doc)
 {
   return doc->text;
-}
-
-void ts_document_parse(TSDocument *doc)
-{
-  TSNode *node = ts_node_new();
-  ts_node_set_name(node, "hi");
-  doc->tree = node;
 }

@@ -1,7 +1,7 @@
 #ifndef __TREE_SITTER_COMPILER_H__
 #define __TREE_SITTER_COMPILER_H__
 
-#include "runtime.h"
+#include "document.h"
 
 #ifdef __cplusplus
 extern "C" {

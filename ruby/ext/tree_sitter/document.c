@@ -34,7 +34,6 @@ static VALUE document_text(VALUE self)
 static VALUE document_tree(VALUE self)
 {
   TSDocument *document = unwrap_document(self);
-  ts_document_parse(document);
   return wrap_node(ts_document_tree(document));
 }
 
