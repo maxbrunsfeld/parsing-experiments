@@ -51,6 +51,9 @@ test: test-c test-lua
 test-c: $(TEST_BIN)
 	./$<
 
+debug: $(TEST_BIN)
+	gdb $<
+
 test-lua:
 	busted -m './src/lua/?.lua;./test/lua/?.lua' test/lua
 
