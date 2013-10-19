@@ -24,7 +24,7 @@ LIB_NAME    = tree_sitter
 DIR         = $(shell pwd)
 HEADERS     = $(wildcard include/*.h)
 C_SOURCES   = $(wildcard src/c/*.c)
-C_TESTS     = $(wildcard test/c/*.c)
+C_TESTS     = $(wildcard test/c/*.c) $(wildcard test/c/parsers/*.c)
 OBJECTS     = $(foreach file, $(C_SOURCES), $(basename $(file)).o)
 LIB_FILE    = lib$(LIB_NAME)$(SO)
 TEST_BIN    = test/run.out
@@ -58,7 +58,7 @@ test-lua:
 	busted -m './src/lua/?.lua;./test/lua/?.lua' test/lua
 
 $(TEST_BIN): $(LIB_FILE) $(C_TESTS)
-	c++ -std=c++11 -stdlib=libc++ -I./include -Itest/c -Iexternals/bantam-bdd -L. -l$(LIB_NAME) test/c/_runner.cc -o $@
+	c++ -std=c++11 -stdlib=libc++ -I./include -Itest/c -Isrc/c -Iexternals/bantam-bdd -L. -l$(LIB_NAME) test/c/_runner.cc -o $@
 
 valgrind: $(TEST_BIN)
 	valgrind --track-origins=yes $(TEST_BIN)
