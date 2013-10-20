@@ -2,10 +2,22 @@ local util = require("util")
 local Struct = require("struct")
 local Rules = require("rules")
 
-return Struct({ "name", "consumed_sym_count", "rule" }, {
+local function rule_is_done(rule)
+  if rule == Rules.End then
+    return true
+  elseif rule.class == Rules.Choice then
+    return rule_is_done(rule.left) or rule_is_done(rule.right)
+  else
+    return false
+  end
+end
+
+return Struct({ "name", "rule" }, {
+  required = { "name", "rule" },
+
   transitions = function(self)
     return util.alist_map(self.rule:transitions(), function(rule)
-      return self.class(self.name, self.consumed_sym_count + 1, rule)
+      return self.class(self.name, rule)
     end)
   end,
 
@@ -17,5 +29,9 @@ return Struct({ "name", "consumed_sym_count", "rule" }, {
       end
     end
     return result
+  end,
+
+  is_done = function(self)
+    return rule_is_done(self.rule)
   end
 })

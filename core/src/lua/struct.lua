@@ -1,16 +1,17 @@
-return function(fields, methods, class_methods)
+local util = require("util")
+
+return function(field_names, methods, class_methods)
   if not methods then methods = {} end
   if not class_methods then class_methods = {} end
   methods.class = class_methods
+  local required_fields = methods.required or {}
 
-  if not methods.initialize then
-    methods.initialize = function(self, ...)
-      local args = {...}
-      for i, v in ipairs(fields) do
-        if args[i] == nil then
-          error("Missing field: " .. v)
-        end
-        self[v] = args[i]
+  local function set_fields(obj, ...)
+    local field_values = {...}
+    for i, name in ipairs(field_names) do
+      obj[name] = field_values[i]
+      if obj[name] == nil and util.contains(required_fields, name) then
+        error("Missing field - " .. name)
       end
     end
   end
@@ -20,7 +21,7 @@ return function(fields, methods, class_methods)
       if other.class ~= class_methods then
         return false
       end
-      for i, field in ipairs(fields) do
+      for i, field in ipairs(field_names) do
         if self[field] ~= other[field] then
           return false
         end
@@ -33,7 +34,12 @@ return function(fields, methods, class_methods)
     __call = function(_, ...)
       local result = {}
       setmetatable(result, { __index = methods, __eq = methods.eq })
-      return result:initialize(...) or result
+      set_fields(result, ...)
+      if result.initialize then
+        return result:initialize(...) or result
+      else
+        return result
+      end
     end
   })
 

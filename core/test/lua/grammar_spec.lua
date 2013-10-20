@@ -2,10 +2,9 @@ require("spec_helper")
 
 local Grammar = require("grammar")
 local Rules = require("rules")
-local Serialization = require("serialization")
 
 describe("Grammar", function()
-  describe("reading", function()
+  describe("deserializing", function()
     local grammar
     local serial_grammar = {
       {"name", "my-language"},
@@ -24,7 +23,7 @@ describe("Grammar", function()
         {"name", {"PATTERN", "\\w+"}}}}}
 
     before_each(function()
-      grammar = Serialization.read_grammar(serial_grammar)
+      grammar = Grammar.read(serial_grammar)
     end)
 
     it("gets the name", function()
@@ -39,7 +38,7 @@ describe("Grammar", function()
       end)
 
       it("gets one for each entry in the rules JSON", function()
-        assert.is.equal(6, table.getn(rules))
+        assert.is.equal(6, #rules)
       end)
 
       it("builds the right rules", function()

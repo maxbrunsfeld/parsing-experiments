@@ -18,7 +18,6 @@ local CHAR_CLASS_MAP = {
 
 local RegexParser = Struct({ 'input' }, {
   initialize = function(self, input)
-    self.input = input
     self.i = 1
     self.len = string.len(input)
   end,

@@ -1,6 +1,6 @@
 #include "_helper.h"
 #include "document.h"
-#include "parsers/parse_math.c"
+#include "parsers/math.c"
 
 TEST(ParserRuntime) {
   TSTree *tree;

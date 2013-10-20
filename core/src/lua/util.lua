@@ -76,14 +76,18 @@ local function alist_find(t, entry)
   end)
 end
 
-local function alist_merge(t1, t2, fn)
+local function alist_merge(t1, ...)
+  local args = {...}
+  local fn = table.remove(args, #args)
   local result = copy_table(t1)
-  for i, transition in ipairs(t2) do
-    local existing = alist_find(result, transition[1])
-    if existing then
-      existing[2] = fn(existing[2], transition[2])
-    else
-      result[#result + 1] = transition
+  for i, table in ipairs(args) do
+    for i, transition in ipairs(table) do
+      local existing = alist_find(result, transition[1])
+      if existing then
+        existing[2] = fn(existing[2], transition[2])
+      else
+        result[#result + 1] = transition
+      end
     end
   end
   return result

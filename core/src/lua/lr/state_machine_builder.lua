@@ -9,13 +9,12 @@ local AUGMENTED_RULE = "__AUGMENTED_RULE__"
 
 local StateMachineBuilder = Struct({ "rules" }, {
   initialize = function(self, rules)
-    self.rules = rules
     self.machine = StateMachine({})
   end,
 
   build = function(self)
     local start_rule_name = self.rules[1][1]
-    local start_item = Item(AUGMENTED_RULE, 0, Rules.Sym(start_rule_name))
+    local start_item = Item(AUGMENTED_RULE, Rules.Sym(start_rule_name))
     local item_set = ItemSet(start_item, self.rules)
     self:add_state_for_item_set(item_set)
     return self.machine
@@ -37,11 +36,11 @@ local StateMachineBuilder = Struct({ "rules" }, {
 
   action_for_item_set = function(self, item_set)
     for i, item in ipairs(item_set) do
-      if item.rule == Rules.End then
+      if item:is_done() then
         if item.name == AUGMENTED_RULE then
           return StateMachine.Actions.Accept
         else
-          return StateMachine.Actions.Reduce(item.consumed_sym_count, item.name)
+          return StateMachine.Actions.Reduce(item.name)
         end
       end
     end

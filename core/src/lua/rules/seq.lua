@@ -6,9 +6,6 @@ return Struct({ "left", "right" }, {
   initialize = function(self, left, right)
     if left == End then
       return right
-    else
-      self.left = left
-      self.right = right
     end
   end,
 

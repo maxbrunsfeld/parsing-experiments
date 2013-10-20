@@ -3,15 +3,15 @@ local Struct = require("struct")
 
 local State = Struct({ "metadata", "action", "transitions" }, {
   initialize = function(self, metadata, action)
-    self.metadata = metadata
-    self.action = action
     self.transitions = {}
   end
 })
 
 return Struct({ "states" }, {
   add_state = function(self, metadata, action)
-    util.push(self.states, State(metadata, action))
+    local state = State(metadata, action)
+    state.index = #self.states + 1
+    util.push(self.states, state)
     return self
   end,
 
@@ -38,25 +38,30 @@ return Struct({ "states" }, {
   end,
 
   visualize = function(self)
-    return self:visualize_state(self.states[1])
+    local visited_states = {}
+    return self:visualize_state(self.states[1], visited_states)
   end,
 
-  visualize_state = function(self, state)
-    if state.action then
-      return state.action:to_string()
+  visualize_state = function(self, state, visited_states)
+    if util.contains(visited_states, state) then
+      return state.index
     else
-      local result = {}
+      util.push(visited_states, state)
+
+      local transitions = {}
       for i, t in ipairs(state.transitions) do
-        result[t[1]:to_string()] = self:visualize_state(t[2])
+        transitions[t[1]:to_string()] = self:visualize_state(t[2], visited_states)
       end
-      return result
+      local action_string = state.action and state.action:to_string()
+
+      return { state.index, transitions, action_string }
     end
   end
 }, {
   Actions = {
-    Reduce = Struct({ "symbol_count", "new_sym" }, {
+    Reduce = Struct({ "new_sym" }, {
       to_string = function(self)
-        return "REDUCE " .. self.symbol_count .. " " .. self.new_sym
+        return "REDUCE " .. self.new_sym
       end
     }),
 

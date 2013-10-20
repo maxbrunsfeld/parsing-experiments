@@ -16,8 +16,8 @@ const char *rule_names[3] = {
 
 TSTree * ts_parse_math(const char *input)
 {
-  TSTree *tree = ts_tree_new(rule_names);
   char lookahead;
+  TSTree *tree = ts_tree_new(rule_names);
   TSParser *p = ts_parser_new(tree, input);
 
 next_state:

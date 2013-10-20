@@ -24,21 +24,17 @@ local CHAR_CLASS_FNS = {
   word = "isalnum",
 }
 
-return Struct({ "state_machine", "grammar_name" }, {
-  initialize = function(self, state_machine, grammar_name)
-    self.state_machine = state_machine
-    self.grammar_name = grammar_name
-    self.indent = 0
-
-    for i, state in ipairs(state_machine.states) do
-      state.index = i
-    end
-  end,
-
+local CodeGenerator = Struct({ "state_machine", "grammar_name", "rules" }, {
   code = function(self)
     return c.render(concat(
       self:includes(),
-      { "" },
+      c.blank_line,
+      c.declare(
+        "const char *rule_names[" .. #self.rules .. "]",
+        c.array(util.map(self.rules, function(rule)
+          return c.string(rule)
+        end))),
+      c.blank_line,
       self:parse_function()
     ))
   end,
@@ -53,12 +49,19 @@ return Struct({ "state_machine", "grammar_name" }, {
   parse_function = function(self)
     return c.fn_def(
       "TSNode *", self.grammar_name,
-      {"const char ** input_string"},
-      util.mapcat(self.state_machine.states, function(state)
-        return concat(
-          { c.label(self:label_for_state(state)) },
-          self:code_for_state(state))
-      end))
+      {"const char **input"},
+      concat(
+        c.declare(
+          "TSTree *tree",
+          { c.fn_call("ts_tree_new") }),
+        c.declare(
+          "TSParser *p",
+          { c.fn_call("ts_parser_new") }),
+        util.mapcat(self.state_machine.states, function(state)
+          return concat(
+            { c.label(self:label_for_state(state)) },
+            self:code_for_state(state))
+        end)))
   end,
 
   code_for_state = function(self, state, i)
@@ -133,3 +136,7 @@ return Struct({ "state_machine", "grammar_name" }, {
     return "SYM_" .. name
   end
 })
+
+return function(...)
+  return CodeGenerator(...):code()
+end

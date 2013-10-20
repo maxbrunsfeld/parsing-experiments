@@ -22,6 +22,14 @@ local function concat(table1, ...)
   return result
 end
 
+local blank_line = { "" }
+
+function array(elements)
+  return concat({ "{", },
+    indented(util.map(elements, function(el) return line(el .. ",") end)),
+    { "}" })
+end
+
 function equals(left, right)
   return left .. " == " .. right
 end
@@ -86,6 +94,16 @@ function statement(input)
   return line(input .. ";")
 end
 
+function _string(value)
+  return '"' .. value .. '"'
+end
+
+function declare(variable, value)
+  value[1] = variable .. " = " .. value[1]
+  value[#value] = value[#value] .. ";"
+  return value
+end
+
 function include_sys(lib_name)
   return line("#include <" .. lib_name .. ".h>")
 end
@@ -97,7 +115,10 @@ end
 return {
   _goto = _goto,
   _if = _if,
+  array = array,
+  blank_line = blank_line,
   char = char,
+  declare = declare,
   equals = equals,
   fn_call = fn_call,
   fn_def = fn_def,
@@ -105,5 +126,6 @@ return {
   label = label,
   line = line,
   render = render,
+  string = _string,
   statement = statement,
 }
