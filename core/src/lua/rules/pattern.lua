@@ -1,10 +1,9 @@
-local Struct = require("struct")
-local util = require("util")
+local Struct = require("util/struct")
 local Seq = require("rules/seq")
-local Choice = require("rules/choice")
 local End = require("rules/end")
-local Repeat = require("rules/repeat")
 local Char = require("rules/char")
+local Choice = require("rules/choice")
+local Repeat = require("rules/repeat")
 local CharClass = require("rules/char_class")
 
 local CHAR_CLASS_MAP = {

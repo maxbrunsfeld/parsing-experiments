@@ -1,4 +1,4 @@
-local Struct = require("struct")
+local Struct = require("util/struct")
 local Seq = require("rules/seq")
 local End = require("rules/end")
 local Char = require("rules/char")

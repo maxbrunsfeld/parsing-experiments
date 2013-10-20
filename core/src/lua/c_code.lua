@@ -1,4 +1,4 @@
-local util = require("util")
+local list = require("util/list")
 
 local SHIFT_WIDTH = 4
 
@@ -26,7 +26,7 @@ local blank_line = { "" }
 
 function array(elements)
   return concat({ "{", },
-    indented(util.map(elements, function(el) return line(el .. ",") end)),
+    indented(list.map(elements, function(el) return line(el .. ",") end)),
     { "}" })
 end
 
@@ -35,7 +35,7 @@ function equals(left, right)
 end
 
 function render(lines)
-  return join(util.map(lines, function(line)
+  return join(list.map(lines, function(line)
     if type(line) == 'string' then
       return line
     elseif line.indent then
@@ -82,7 +82,7 @@ function _if(condition, body)
 end
 
 function indented(lines)
-  return util.map(lines, function(line)
+  return list.map(lines, function(line)
     if line.indent ~= nil then
       line.indent = line.indent + 1
     end

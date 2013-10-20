@@ -1,5 +1,5 @@
-local Struct = require("struct")
-local util = require("util")
+local Struct = require("util/struct")
+local alist = require("util/alist")
 local End = require("rules/end")
 
 return Struct({ "left", "right" }, {
@@ -10,7 +10,7 @@ return Struct({ "left", "right" }, {
   end,
 
   transitions = function(self)
-    return util.alist_map(self.left:transitions(), function(rule)
+    return alist.map(self.left:transitions(), function(rule)
       return self.class(rule, self.right)
     end)
   end

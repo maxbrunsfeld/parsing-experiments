@@ -1,5 +1,6 @@
-local util = require("util")
-local Struct = require("struct")
+local list = require("util/list")
+local alist = require("util/alist")
+local Struct = require("util/struct")
 local Rules = require("rules")
 
 local function rule_is_done(rule)
@@ -16,7 +17,7 @@ return Struct({ "name", "rule" }, {
   required = { "name", "rule" },
 
   transitions = function(self)
-    return util.alist_map(self.rule:transitions(), function(rule)
+    return alist.map(self.rule:transitions(), function(rule)
       return self.class(self.name, rule)
     end)
   end,
@@ -25,7 +26,7 @@ return Struct({ "name", "rule" }, {
     local result = {}
     for i, transition in ipairs(self:transitions()) do
       if transition[1].class == Rules.Sym then
-        util.push(result, transition[1])
+        list.push(result, transition[1])
       end
     end
     return result

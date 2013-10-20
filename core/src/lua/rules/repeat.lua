@@ -1,12 +1,12 @@
-local Struct = require("struct")
-local util = require("util")
+local Struct = require("util/struct")
+local alist = require("util/alist")
 local Seq = require("rules/seq")
-local Choice = require("rules/choice")
 local End = require("rules/end")
+local Choice = require("rules/choice")
 
 return Struct({ "value" }, {
   transitions = function(self)
-    return util.alist_map(self.value:transitions(), function(value)
+    return alist.map(self.value:transitions(), function(value)
       return Seq(value, Choice(self, End))
     end)
   end

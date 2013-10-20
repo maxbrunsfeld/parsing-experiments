@@ -1,5 +1,6 @@
-local util = require("util")
-local Struct = require("struct")
+local list = require("util/list")
+local alist = require("util/alist")
+local Struct = require("util/struct")
 local Item = require("lr/item")
 
 return Struct({}, {
@@ -18,10 +19,10 @@ return Struct({}, {
   end,
 
   add_item = function(self, item, rules)
-    if not util.contains(self, item) then
-      util.push(self, item)
+    if not list.contains(self, item) then
+      list.push(self, item)
       for i, symbol in ipairs(item:next_symbols()) do
-        local rule = util.alist_get(rules, symbol.name)
+        local rule = alist.get(rules, symbol.name)
         local transition_item = Item(symbol.name, rule)
         self:add_item(transition_item, rules)
       end
@@ -29,9 +30,9 @@ return Struct({}, {
   end,
 
   transitions = function(self, rules)
-    local args = util.map(self, function(item)
-      return util.map(item:transitions(), function(transition)
-        return { transition[1], self.class(transition[2], rules) }
+    local args = list.map(self, function(item)
+      return alist.map(item:transitions(), function(to_item)
+        return self.class(to_item, rules)
       end)
     end)
 
@@ -43,7 +44,7 @@ return Struct({}, {
       return result
     end
 
-    util.push(args, merge_fn)
-    return util.alist_merge(unpack(args))
+    list.push(args, merge_fn)
+    return alist.merge(unpack(args))
   end
 })

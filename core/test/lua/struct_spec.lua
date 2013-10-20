@@ -1,5 +1,5 @@
 require("spec_helper")
-local Struct = require("struct")
+local Struct = require("util/struct")
 
 describe("Struct", function()
   local SomeStruct = Struct({ "field_a", "field_b" }, {

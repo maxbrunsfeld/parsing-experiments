@@ -1,5 +1,5 @@
-local util = require("util")
-local Struct = require("struct")
+local list = require("util/list")
+local Struct = require("util/struct")
 
 local State = Struct({ "metadata", "action", "transitions" }, {
   initialize = function(self, metadata, action)
@@ -11,12 +11,12 @@ return Struct({ "states" }, {
   add_state = function(self, metadata, action)
     local state = State(metadata, action)
     state.index = #self.states + 1
-    util.push(self.states, state)
+    list.push(self.states, state)
     return self
   end,
 
   add_transition = function(self, metadata1, transition_on, metadata2)
-    util.push(
+    list.push(
       self:state_with_metadata(metadata1).transitions,
       { transition_on, self:state_with_metadata(metadata2) })
     return self
@@ -32,7 +32,7 @@ return Struct({ "states" }, {
   end,
 
   _state_with_metadata = function(self, metadata)
-    return util.find(self.states, function(state)
+    return list.find(self.states, function(state)
       return state.metadata == metadata
     end)
   end,
@@ -43,10 +43,10 @@ return Struct({ "states" }, {
   end,
 
   visualize_state = function(self, state, visited_states)
-    if util.contains(visited_states, state) then
+    if list.contains(visited_states, state) then
       return state.index
     else
-      util.push(visited_states, state)
+      list.push(visited_states, state)
 
       local transitions = {}
       for i, t in ipairs(state.transitions) do

@@ -1,4 +1,4 @@
-local util = require("util")
+local list = require("util/list")
 
 return function(field_names, methods, class_methods)
   if not methods then methods = {} end
@@ -10,7 +10,7 @@ return function(field_names, methods, class_methods)
     local field_values = {...}
     for i, name in ipairs(field_names) do
       obj[name] = field_values[i]
-      if obj[name] == nil and util.contains(required_fields, name) then
+      if obj[name] == nil and list.contains(required_fields, name) then
         error("Missing field - " .. name)
       end
     end

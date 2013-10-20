@@ -1,5 +1,4 @@
-local util = require("util")
-local Struct = require("struct")
+local Struct = require("util/struct")
 local Rules = require("rules")
 local Item = require("lr/item")
 local ItemSet = require("lr/item_set")

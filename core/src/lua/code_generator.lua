@@ -1,5 +1,5 @@
-local Struct = require("Struct")
-local util = require("util")
+local Struct = require("util/struct")
+local list = require("util/list")
 local Rules = require("rules")
 local StateMachine = require("state_machine")
 local c = require("c_code")
@@ -31,7 +31,7 @@ local CodeGenerator = Struct({ "state_machine", "grammar_name", "rules" }, {
       c.blank_line,
       c.declare(
         "const char *rule_names[" .. #self.rules .. "]",
-        c.array(util.map(self.rules, function(rule)
+        c.array(list.map(self.rules, function(rule)
           return c.string(rule)
         end))),
       c.blank_line,
@@ -57,7 +57,7 @@ local CodeGenerator = Struct({ "state_machine", "grammar_name", "rules" }, {
         c.declare(
           "TSParser *p",
           { c.fn_call("ts_parser_new") }),
-        util.mapcat(self.state_machine.states, function(state)
+        list.mapcat(self.state_machine.states, function(state)
           return concat(
             { c.label(self:label_for_state(state)) },
             self:code_for_state(state))
@@ -90,7 +90,7 @@ local CodeGenerator = Struct({ "state_machine", "grammar_name", "rules" }, {
   end,
 
   code_for_state_transitions = function(self, transitions)
-    return concat(util.mapcat(transitions, function(transition)
+    return concat(list.mapcat(transitions, function(transition)
       local condition = self:code_for_transition_on(transition[1])
 
       local body

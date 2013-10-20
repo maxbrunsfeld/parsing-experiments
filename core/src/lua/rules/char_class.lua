@@ -1,4 +1,4 @@
-local Struct = require("struct")
+local Struct = require("util/struct")
 local End = require("rules/end")
 
 local function builder(name)

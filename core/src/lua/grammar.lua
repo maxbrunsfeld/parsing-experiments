@@ -1,5 +1,5 @@
-local Struct = require("struct")
-local util = require("util")
+local Struct = require("util/struct")
+local alist = require("util/alist")
 local Rules = require("rules")
 
 local function map_pairs(t, fn)
@@ -36,8 +36,8 @@ local Grammar
 Grammar = Struct({ "name", "rules" }, {}, {
   read = function(json)
     return Grammar(
-      util.alist_get(json, "name"),
-      map_pairs(util.alist_get(json, "rules"), read_rule))
+      alist.get(json, "name"),
+      map_pairs(alist.get(json, "rules"), read_rule))
   end
 })
 

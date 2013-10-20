@@ -1,4 +1,4 @@
-local Struct = require("struct")
+local Struct = require("util/struct")
 
 return Struct({}, {
   initialize = function(self)

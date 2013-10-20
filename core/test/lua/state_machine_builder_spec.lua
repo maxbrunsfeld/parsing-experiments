@@ -1,8 +1,8 @@
 require("spec_helper")
 
+local alist = require("util/alist")
 local LR = require("lr")
 local Rules = require("rules")
-local util = require("util")
 
 describe("StateMachine", function()
   local state_machine
@@ -43,7 +43,7 @@ describe("StateMachine", function()
   end)
 
   it("respects the ordering of choices", function()
-    local transition_inputs = util.alist_keys(state_machine.states[1].transitions)
+    local transition_inputs = alist.keys(state_machine.states[1].transitions)
     assert.are.same(_sym("t0"), transition_inputs[1])
     assert.are.same(_sym("t1"), transition_inputs[2])
     assert.are.same(_sym("t2"), transition_inputs[3])

@@ -8,10 +8,12 @@ enum {
   node_type_plus,
 };
 
-const char *rule_names[3] = {
-  "number",
-  "times",
-  "plus"
+const char *rule_names[5] = {
+    "expr",
+    "term",
+    "factor",
+    "number",
+    "variable",
 };
 
 TSTree * ts_parse_math(const char *input)
