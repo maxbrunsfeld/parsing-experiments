@@ -46,7 +46,11 @@ describe("CodeGenerator", function()
     it("generates a parsing function", function()
       -- P.dump(state_machine:visualize())
       test_generated_code(state_machine, "math", {
-        "expr", "term", "factor", "number", "variable"
+        "expr",
+        "term",
+        "factor",
+        "number",
+        "variable"
       })
     end)
   end)
@@ -58,12 +62,12 @@ end
 
 function test_generated_code(state_machine, grammar_name, rules)
   local code = generate_code(state_machine, grammar_name, rules)
+  local file_path = parser_file_path(grammar_name)
   if PRINT_PARSER then
-    print("")
-    print(grammar_name .. ":")
-    print(code)
+    local f = io.open(file_path, "w")
+    f:write(code)
+    f:close()
   else
-    local file_path = parser_file_path(grammar_name)
     local current_code = io.open(file_path, "r"):read("*all")
     assert.are.equal(current_code, code)
   end

@@ -34,6 +34,11 @@ static void ts_parser_push_state(TSParser *p, TSParseState s)
   p->state_stack[p->state_stack_size++] = s;
 }
 
+static void ts_parser_replace_state(TSParser *p, TSParseState s)
+{
+  p->state_stack[p->state_stack_size] = s;
+}
+
 static void ts_parser_error(TSParser *p)
 {
   printf("==> OMG error \n");

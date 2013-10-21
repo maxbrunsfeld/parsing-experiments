@@ -2,19 +2,8 @@ local Struct = require("util/struct")
 local list = require("util/list")
 local Rules = require("rules")
 local StateMachine = require("state_machine")
-local c = require("c_code")
 
--- string utils
-local function concat(...)
-  local result = {}
-  for i, table in ipairs({...}) do
-    for i, entry in ipairs(table) do
-      result[#result + 1] = entry
-    end
-  end
-  return result
-end
-
+local SHIFT_WIDTH = 4
 local LOOKAHEAD_CHAR = "lookahead_char"
 local LOOKAHEAD_SYM = "lookahead_sym"
 
@@ -24,119 +13,171 @@ local CHAR_CLASS_FNS = {
   word = "isalnum",
 }
 
-local CodeGenerator = Struct({ "state_machine", "grammar_name", "rules" }, {
-  code = function(self)
-    return c.render(concat(
-      self:includes(),
-      c.blank_line,
-      c.declare(
-        "const char *rule_names[" .. #self.rules .. "]",
-        c.array(list.map(self.rules, function(rule)
-          return c.string(rule)
-        end))),
-      c.blank_line,
-      self:parse_function()
-    ))
-  end,
-
-  includes = function(self)
-    return {
-      c.include_sys("tree_sitter/runtime"),
-      c.include_sys("ctype")
-    }
-  end,
-
-  parse_function = function(self)
-    return c.fn_def(
-      "TSNode *", self.grammar_name,
-      {"const char **input"},
-      concat(
-        c.declare(
-          "TSTree *tree",
-          { c.fn_call("ts_tree_new") }),
-        c.declare(
-          "TSParser *p",
-          { c.fn_call("ts_parser_new") }),
-        list.mapcat(self.state_machine.states, function(state)
-          return concat(
-            { c.label(self:label_for_state(state)) },
-            self:code_for_state(state))
-        end)))
-  end,
-
-  code_for_state = function(self, state, i)
-    if state.action then
-      return self:code_for_state_action(state.action)
-    else
-      return self:code_for_state_transitions(state.transitions)
+local function join(strings, sep)
+  local result = strings[1] or ""
+  for i, string in ipairs(strings) do
+    if i ~= 1 then
+      result = result .. sep .. string
     end
-  end,
-
-  code_for_state_action = function(self, action)
-    if action == StateMachine.Actions.Accept then
-      return {
-        c.statement(c.fn_call("accept"))
-      }
-    elseif action.class == StateMachine.Actions.Reduce then
-      return {
-        c.statement(c.fn_call("reduce", {
-          action.symbol_count,
-          self:sym(action.new_sym)
-        }))
-      }
-    else
-      error("Unknown action: " .. P.write(action))
-    end
-  end,
-
-  code_for_state_transitions = function(self, transitions)
-    return concat(list.mapcat(transitions, function(transition)
-      local condition = self:code_for_transition_on(transition[1])
-
-      local body
-      if transition[1].class == Rules.Sym then
-        body = {
-          c._goto(self:label_for_state(transition[2]))
-        }
-      else
-        body = {
-          c.statement(c.fn_call("shift")),
-          c._goto(self:label_for_state(transition[2])),
-        }
-      end
-
-      return c._if(condition, body)
-    end), {
-      c.statement(c.fn_call("error"))
-    })
-  end,
-
-  label_for_state = function(self, state, i)
-    return "state_" .. state.index
-  end,
-
-  code_for_transition_on = function(self, transition_on)
-    if (transition_on.class == Rules.Char) then
-      return c.equals(LOOKAHEAD_CHAR, c.char(transition_on.value))
-    elseif (transition_on.class == Rules.CharClass) then
-      return c.fn_call(self:fn_for_char_class(transition_on.name), { LOOKAHEAD_CHAR })
-    elseif (transition_on.class == Rules.Sym) then
-      return c.equals(LOOKAHEAD_SYM, self:sym(transition_on.name))
-    else
-      error("Unknown transition type: " .. P.write(transition_on))
-    end
-  end,
-
-  fn_for_char_class = function(self, class_name)
-    return CHAR_CLASS_FNS[class_name] or
-      error("Unknown character class: " .. class_name)
-  end,
-
-  sym = function(self, name)
-    return "SYM_" .. name
   end
-})
+  return result
+end
 
-return function(...)
-  return CodeGenerator(...):code()
+local function rule_count(x)
+  return #x.rules
+end
+
+local function str(value)
+  return '"' .. value .. '"'
+end
+
+local function indent(code, n)
+  local padding = string.rep("  ", n)
+  return padding .. string.gsub(code, "\n", "\n" .. padding)
+end
+
+local function node_type(rule_name)
+  return "node_type_" .. rule_name
+end
+
+local function node_types_enum(x)
+  return indent(join(list.map(x.rules, function(rule)
+    return node_type(rule)
+  end), ",\n"), 1)
+end
+
+local function rule_names_array(x)
+  return indent(join(list.map(x.rules, str), ",\n"), 1)
+end
+
+local function parser_function_name(x)
+  return "ts_parse_math"
+end
+
+function equals(left, right)
+  return left .. " == " .. right
+end
+
+local function fn_for_char_class(class_name)
+  return CHAR_CLASS_FNS[class_name] or
+    error("Unknown character class: " .. class_name)
+end
+
+function char(value)
+  return "'" .. value .. "'"
+end
+
+local function condition_for_transition_on(transition_on)
+  if (transition_on.class == Rules.Char) then
+    return equals(LOOKAHEAD_CHAR, char(transition_on.value))
+  elseif (transition_on.class == Rules.CharClass) then
+    return fn_for_char_class(transition_on.name) .. "(" .. LOOKAHEAD_CHAR .. ")"
+  elseif (transition_on.class == Rules.Sym) then
+    return equals(LOOKAHEAD_SYM, node_type(transition_on.name))
+  else
+    error("Unknown transition type: " .. P.write(transition_on))
+  end
+end
+
+local function code_for_state_transition(transition)
+  local condition = condition_for_transition_on(transition[1])
+  local body = (transition[1].class == Rules.Sym) and [[
+ts_parser_push_state(p, ]] .. transition[2].index .. [[);
+goto next_state;]]
+    or [[
+ts_parser_consume(p);
+ts_parser_replace_state(p, ]] .. transition[2].index .. [[);
+goto next_state;]]
+
+  return "if (" .. condition .. ") {\n" ..
+    indent(body, 1) ..  "\n}"
+end
+
+local function code_for_state_action(action)
+  if action == StateMachine.Actions.Accept then
+    return "goto accept;\n"
+  elseif action.class == StateMachine.Actions.Reduce then
+    return "ts_parser_reduce(p, 1, " .. node_type(action.new_sym) .. ");\n"
+  else
+    error("Unknown action: " .. P.write(action))
+  end
+end
+
+local function code_for_state_transitions(transitions)
+  return join(list.map(transitions, code_for_state_transition), "\n") .. "\n"
+end
+
+local function code_for_state(state)
+  return
+    (#state.transitions > 0 and
+      code_for_state_transitions(state.transitions) or "") ..
+    (state.action and
+      code_for_state_action(state.action) or "")
+end
+
+local function case_for_state(state)
+  return indent([[
+case ]] .. state.index .. [[:
+{
+]] ..
+indent(code_for_state(state), 1) .. [[
+break;
+}]], 2)
+end
+
+local function cases_for_states(x)
+  return join(list.map(x.state_machine.states, case_for_state), "\n\n")
+end
+
+local function parser(x)
+  return [[
+/*
+ * Generated by libtree-sitter
+ */
+
+#include <tree_sitter/runtime.h>
+#include <ctype.h>
+
+typedef enum {
+]] ..
+node_types_enum(x) ..
+[[
+
+} NodeType;
+
+static const char *rule_names[]] ..  rule_count(x) ..  [[] = {
+]] ..
+rule_names_array(x) ..
+[[
+
+};
+
+TSTree * ]] .. parser_function_name(x) ..  [[(const char *input)
+{
+  char lookahead_char;
+  NodeType lookahead_sym;
+  TSTree *tree = ts_tree_new(rule_names);
+  TSParser *p = ts_parser_new(tree, input);
+
+next_state:
+  lookahead_char = ts_parser_lookahead(p);
+  switch (ts_parser_state(p)) {
+]] ..
+cases_for_states(x) ..
+[[
+
+  }
+
+accept:
+  return tree;
+}
+]]
+end
+
+return function(state_machine, grammar_name, rules)
+  return parser({
+    state_machine = state_machine,
+    grammar_name = grammar_name,
+    rules = rules
+  })
 end
