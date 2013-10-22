@@ -36,13 +36,13 @@ local function indent(code, n)
   return padding .. string.gsub(code, "\n", "\n" .. padding)
 end
 
-local function node_type(rule_name)
-  return "node_type_" .. rule_name
+local function symbol_name(rule_name)
+  return "symbol_" .. rule_name
 end
 
-local function node_types_enum(x)
+local function symbols_enum(x)
   return indent(join(list.map(x.rules, function(rule)
-    return node_type(rule)
+    return symbol_name(rule)
   end), ",\n"), 1)
 end
 
@@ -73,7 +73,7 @@ local function condition_for_transition_on(transition_on)
   elseif (transition_on.class == Rules.CharClass) then
     return fn_for_char_class(transition_on.name) .. "(" .. LOOKAHEAD_CHAR .. ")"
   elseif (transition_on.class == Rules.Sym) then
-    return equals(LOOKAHEAD_SYM, node_type(transition_on.name))
+    return equals(LOOKAHEAD_SYM, symbol_name(transition_on.name))
   else
     error("Unknown transition type: " .. P.write(transition_on))
   end
@@ -81,23 +81,23 @@ end
 
 local function code_for_state_transition(transition)
   local condition = condition_for_transition_on(transition[1])
-  local body = (transition[1].class == Rules.Sym) and [[
-ts_parser_push_state(p, ]] .. transition[2].index .. [[);
+  local new_index = transition[2].index
+  local body = (transition[1].class == Rules.Sym)
+    and [[
+ts_parser_push_state(p, ]] .. new_index .. [[);
 goto next_state;]]
     or [[
-ts_parser_consume(p);
-ts_parser_replace_state(p, ]] .. transition[2].index .. [[);
+ts_parser_shift(p, ]] .. new_index .. [[);
 goto next_state;]]
 
-  return "if (" .. condition .. ") {\n" ..
-    indent(body, 1) ..  "\n}"
+  return "if (" .. condition .. ") {\n" ..  indent(body, 1) ..  "\n}"
 end
 
 local function code_for_state_action(action)
   if action == StateMachine.Actions.Accept then
     return "goto accept;\n"
   elseif action.class == StateMachine.Actions.Reduce then
-    return "ts_parser_reduce(p, 1, " .. node_type(action.new_sym) .. ");\n"
+    return "ts_parser_reduce(p, 1, " .. symbol_name(action.new_sym) .. ");\n"
   else
     error("Unknown action: " .. P.write(action))
   end
@@ -138,12 +138,12 @@ local function parser(x)
 #include <tree_sitter/runtime.h>
 #include <ctype.h>
 
-typedef enum {
+enum {
 ]] ..
-node_types_enum(x) ..
+symbols_enum(x) ..
 [[
 
-} NodeType;
+};
 
 static const char *rule_names[]] ..  rule_count(x) ..  [[] = {
 ]] ..
@@ -155,12 +155,12 @@ rule_names_array(x) ..
 TSTree * ]] .. parser_function_name(x) ..  [[(const char *input)
 {
   char lookahead_char;
-  NodeType lookahead_sym;
+  int lookahead_sym;
   TSTree *tree = ts_tree_new(rule_names);
   TSParser *p = ts_parser_new(tree, input);
 
 next_state:
-  lookahead_char = ts_parser_lookahead(p);
+  lookahead_char = ts_parser_lookahead_char(p);
   switch (ts_parser_state(p)) {
 ]] ..
 cases_for_states(x) ..

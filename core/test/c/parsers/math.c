@@ -5,13 +5,13 @@
 #include <tree_sitter/runtime.h>
 #include <ctype.h>
 
-typedef enum {
-  node_type_expr,
-  node_type_term,
-  node_type_factor,
-  node_type_number,
-  node_type_variable
-} NodeType;
+enum {
+  symbol_expr,
+  symbol_term,
+  symbol_factor,
+  symbol_number,
+  symbol_variable
+};
 
 static const char *rule_names[5] = {
   "expr",
@@ -23,49 +23,48 @@ static const char *rule_names[5] = {
 
 TSTree * ts_parse_math(const char *input)
 {
+  int current_state;
+  int position;
+  int lookahead_sym;
   char lookahead_char;
-  NodeType lookahead_sym;
   TSTree *tree = ts_tree_new(rule_names);
   TSParser *p = ts_parser_new(tree, input);
 
 next_state:
-  lookahead_char = ts_parser_lookahead(p);
+  lookahead_char = ts_parser_lookahead_char(p);
   switch (ts_parser_state(p)) {
     case 1:
     {
-      if (lookahead_sym == node_type_expr) {
+      if (lookahead_sym == symbol_expr) {
         ts_parser_push_state(p, 2);
         goto next_state;
       }
-      if (lookahead_sym == node_type_term) {
+      if (lookahead_sym == symbol_term) {
         ts_parser_push_state(p, 4);
         goto next_state;
       }
-      if (lookahead_sym == node_type_factor) {
+      if (lookahead_sym == symbol_factor) {
         ts_parser_push_state(p, 6);
         goto next_state;
       }
-      if (lookahead_sym == node_type_number) {
+      if (lookahead_sym == symbol_number) {
         ts_parser_push_state(p, 7);
         goto next_state;
       }
-      if (lookahead_sym == node_type_variable) {
+      if (lookahead_sym == symbol_variable) {
         ts_parser_push_state(p, 7);
         goto next_state;
       }
       if (lookahead_char == '(') {
-        ts_parser_consume(p);
-        ts_parser_replace_state(p, 8);
+        ts_parser_shift(p, 8);
         goto next_state;
       }
       if (isdigit(lookahead_char)) {
-        ts_parser_consume(p);
-        ts_parser_replace_state(p, 10);
+        ts_parser_shift(p, 10);
         goto next_state;
       }
       if (isalnum(lookahead_char)) {
-        ts_parser_consume(p);
-        ts_parser_replace_state(p, 11);
+        ts_parser_shift(p, 11);
         goto next_state;
       }
       break;
@@ -74,8 +73,7 @@ next_state:
     case 2:
     {
       if (lookahead_char == '+') {
-        ts_parser_consume(p);
-        ts_parser_replace_state(p, 3);
+        ts_parser_shift(p, 3);
         goto next_state;
       }
       goto accept;
@@ -84,35 +82,32 @@ next_state:
 
     case 3:
     {
-      if (lookahead_sym == node_type_term) {
+      if (lookahead_sym == symbol_term) {
         ts_parser_push_state(p, 4);
         goto next_state;
       }
-      if (lookahead_sym == node_type_factor) {
+      if (lookahead_sym == symbol_factor) {
         ts_parser_push_state(p, 6);
         goto next_state;
       }
-      if (lookahead_sym == node_type_number) {
+      if (lookahead_sym == symbol_number) {
         ts_parser_push_state(p, 7);
         goto next_state;
       }
-      if (lookahead_sym == node_type_variable) {
+      if (lookahead_sym == symbol_variable) {
         ts_parser_push_state(p, 7);
         goto next_state;
       }
       if (lookahead_char == '(') {
-        ts_parser_consume(p);
-        ts_parser_replace_state(p, 8);
+        ts_parser_shift(p, 8);
         goto next_state;
       }
       if (isdigit(lookahead_char)) {
-        ts_parser_consume(p);
-        ts_parser_replace_state(p, 10);
+        ts_parser_shift(p, 10);
         goto next_state;
       }
       if (isalnum(lookahead_char)) {
-        ts_parser_consume(p);
-        ts_parser_replace_state(p, 11);
+        ts_parser_shift(p, 11);
         goto next_state;
       }
       break;
@@ -121,41 +116,37 @@ next_state:
     case 4:
     {
       if (lookahead_char == '*') {
-        ts_parser_consume(p);
-        ts_parser_replace_state(p, 5);
+        ts_parser_shift(p, 5);
         goto next_state;
       }
-      ts_parser_reduce(p, 1, node_type_expr);
+      ts_parser_reduce(p, 1, symbol_expr);
       break;
     }
 
     case 5:
     {
-      if (lookahead_sym == node_type_factor) {
+      if (lookahead_sym == symbol_factor) {
         ts_parser_push_state(p, 6);
         goto next_state;
       }
-      if (lookahead_sym == node_type_number) {
+      if (lookahead_sym == symbol_number) {
         ts_parser_push_state(p, 7);
         goto next_state;
       }
-      if (lookahead_sym == node_type_variable) {
+      if (lookahead_sym == symbol_variable) {
         ts_parser_push_state(p, 7);
         goto next_state;
       }
       if (lookahead_char == '(') {
-        ts_parser_consume(p);
-        ts_parser_replace_state(p, 8);
+        ts_parser_shift(p, 8);
         goto next_state;
       }
       if (isdigit(lookahead_char)) {
-        ts_parser_consume(p);
-        ts_parser_replace_state(p, 10);
+        ts_parser_shift(p, 10);
         goto next_state;
       }
       if (isalnum(lookahead_char)) {
-        ts_parser_consume(p);
-        ts_parser_replace_state(p, 11);
+        ts_parser_shift(p, 11);
         goto next_state;
       }
       break;
@@ -163,51 +154,48 @@ next_state:
 
     case 6:
     {
-      ts_parser_reduce(p, 1, node_type_term);
+      ts_parser_reduce(p, 1, symbol_term);
       break;
     }
 
     case 7:
     {
-      ts_parser_reduce(p, 1, node_type_factor);
+      ts_parser_reduce(p, 1, symbol_factor);
       break;
     }
 
     case 8:
     {
-      if (lookahead_sym == node_type_expr) {
+      if (lookahead_sym == symbol_expr) {
         ts_parser_push_state(p, 9);
         goto next_state;
       }
-      if (lookahead_sym == node_type_term) {
+      if (lookahead_sym == symbol_term) {
         ts_parser_push_state(p, 4);
         goto next_state;
       }
-      if (lookahead_sym == node_type_factor) {
+      if (lookahead_sym == symbol_factor) {
         ts_parser_push_state(p, 6);
         goto next_state;
       }
-      if (lookahead_sym == node_type_number) {
+      if (lookahead_sym == symbol_number) {
         ts_parser_push_state(p, 7);
         goto next_state;
       }
-      if (lookahead_sym == node_type_variable) {
+      if (lookahead_sym == symbol_variable) {
         ts_parser_push_state(p, 7);
         goto next_state;
       }
       if (lookahead_char == '(') {
-        ts_parser_consume(p);
-        ts_parser_replace_state(p, 8);
+        ts_parser_shift(p, 8);
         goto next_state;
       }
       if (isdigit(lookahead_char)) {
-        ts_parser_consume(p);
-        ts_parser_replace_state(p, 10);
+        ts_parser_shift(p, 10);
         goto next_state;
       }
       if (isalnum(lookahead_char)) {
-        ts_parser_consume(p);
-        ts_parser_replace_state(p, 11);
+        ts_parser_shift(p, 11);
         goto next_state;
       }
       break;
@@ -216,13 +204,11 @@ next_state:
     case 9:
     {
       if (lookahead_char == ')') {
-        ts_parser_consume(p);
-        ts_parser_replace_state(p, 7);
+        ts_parser_shift(p, 7);
         goto next_state;
       }
       if (lookahead_char == '+') {
-        ts_parser_consume(p);
-        ts_parser_replace_state(p, 3);
+        ts_parser_shift(p, 3);
         goto next_state;
       }
       break;
@@ -231,22 +217,20 @@ next_state:
     case 10:
     {
       if (isdigit(lookahead_char)) {
-        ts_parser_consume(p);
-        ts_parser_replace_state(p, 10);
+        ts_parser_shift(p, 10);
         goto next_state;
       }
-      ts_parser_reduce(p, 1, node_type_number);
+      ts_parser_reduce(p, 1, symbol_number);
       break;
     }
 
     case 11:
     {
       if (isalnum(lookahead_char)) {
-        ts_parser_consume(p);
-        ts_parser_replace_state(p, 11);
+        ts_parser_shift(p, 11);
         goto next_state;
       }
-      ts_parser_reduce(p, 1, node_type_variable);
+      ts_parser_reduce(p, 1, symbol_variable);
       break;
     }
   }

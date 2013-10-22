@@ -2,7 +2,7 @@
 #include "tree.h"
 #include <stdlib.h>
 
-void ts_node_initialize(TSNode *node, TSNodeType type)
+void ts_node_initialize(TSNode *node, int type)
 {
   node->type = type;
   node->child_node_count = 0;
@@ -10,7 +10,7 @@ void ts_node_initialize(TSNode *node, TSNodeType type)
     node->child_nodes[i] = 0;
 }
 
-TSNode * ts_node_new(TSNodeType type, int child_node_count, const TSNode **child_nodes)
+TSNode * ts_node_new(int type, int child_node_count, const TSNode **child_nodes)
 {
   TSNode *n = malloc(sizeof(TSNode));
   ts_node_initialize(n, type);
@@ -92,7 +92,7 @@ void expand_tree(TSTree *t)
   realloc(t->nodes, t->node_capacity);
 }
 
-TSNode * ts_tree_add_node(TSTree *t, TSNodeType type)
+TSNode * ts_tree_add_node(TSTree *t, int type)
 {
   if (t->node_count >= t->node_capacity)
     expand_tree(t);

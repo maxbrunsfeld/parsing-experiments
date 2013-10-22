@@ -1,7 +1,7 @@
 #define CHILD_COUNT 10
 
 struct TSNode {
-  TSNodeType type;
+  int type;
   int child_node_count;
   TSNode *child_nodes[CHILD_COUNT];
 };
