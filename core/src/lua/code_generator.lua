@@ -80,26 +80,33 @@ local function condition_for_transition_on(transition_on)
 end
 
 local function code_for_state_transition(transition)
-  local condition = condition_for_transition_on(transition[1])
-  local new_index = transition[2].index
-  local body = (transition[1].class == Rules.Sym)
-    and [[
-ts_parser_push_state(p, ]] .. new_index .. [[);
+  local condition = condition_for_transition_on(transition.on)
+  if transition.class == StateMachine.AcceptTransition then
+    body = "goto accept;"
+  elseif transition.class == StateMachine.ReduceTransition then
+    body = "ts_parser_reduce(p, 1, " .. symbol_name(transition.symbol) .. ");"
+  elseif transition.on.class == Rules.Sym then
+    body = [[
+ts_parser_push_state(p, ]] .. transition.to_state.index .. [[);
 goto next_state;]]
-    or [[
-ts_parser_shift(p, ]] .. new_index .. [[);
+  else
+    body = [[
+ts_parser_shift(p, ]] .. transition.to_state.index .. [[);
 goto next_state;]]
+  end
 
   return "if (" .. condition .. ") {\n" ..  indent(body, 1) ..  "\n}"
 end
 
 local function code_for_state_action(action)
-  if action == StateMachine.Actions.Accept then
-    return "goto accept;\n"
-  elseif action.class == StateMachine.Actions.Reduce then
-    return "ts_parser_reduce(p, 1, " .. symbol_name(action.new_sym) .. ");\n"
+  if action == nil then
+    return "ts_parser_error(p);"
+  elseif action.class == StateMachine.AcceptTransition then
+    return "goto accept;"
+  elseif action.class == StateMachine.ReduceTransition then
+    return "ts_parser_reduce(p, 1, " .. symbol_name(action.symbol) .. ");"
   else
-    error("Unknown action: " .. P.write(action))
+    error("Unknown parser action: " .. action)
   end
 end
 
@@ -109,10 +116,8 @@ end
 
 local function code_for_state(state)
   return
-    (#state.transitions > 0 and
-      code_for_state_transitions(state.transitions) or "") ..
-    (state.action and
-      code_for_state_action(state.action) or "")
+    (#state.transitions > 0 and code_for_state_transitions(state.transitions) or "") ..
+    code_for_state_action(state.default_action)
 end
 
 local function case_for_state(state)
@@ -121,7 +126,8 @@ case ]] .. state.index .. [[:
 {
 ]] ..
 indent(code_for_state(state), 1) .. [[
-break;
+
+  break;
 }]], 2)
 end
 

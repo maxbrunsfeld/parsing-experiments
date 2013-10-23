@@ -1,24 +1,56 @@
 local list = require("util/list")
 local Struct = require("util/struct")
 
-local State = Struct({ "metadata", "action", "transitions" }, {
-  initialize = function(self, metadata, action)
+local State = Struct({ "metadata", "default_action", "transitions" }, {
+  initialize = function(self)
     self.transitions = {}
   end
 })
 
+local ShiftTransition = Struct({ "on", "to_state" }, {
+  to_string = function(self)
+    return "SHIFT " .. self.to_state.index
+  end
+})
+
+local ReduceTransition = Struct({ "on", "symbol" }, {
+  to_string = function(self)
+    return "REDUCE " .. self.symbol
+  end
+})
+
+local AcceptTransition = Struct({ "on" }, {
+  to_string = function(self)
+    return "ACCEPT"
+  end
+})
+
 return Struct({ "states" }, {
-  add_state = function(self, metadata, action)
-    local state = State(metadata, action)
+  add_state = function(self, metadata, default_action)
+    local state = State(metadata, default_action)
     state.index = #self.states + 1
     list.push(self.states, state)
     return self
   end,
 
-  add_transition = function(self, metadata1, transition_on, metadata2)
+  add_shift_transition = function(self, from_metadata, transition_on, to_metadata)
     list.push(
-      self:state_with_metadata(metadata1).transitions,
-      { transition_on, self:state_with_metadata(metadata2) })
+      self:state_with_metadata(from_metadata).transitions,
+      ShiftTransition(transition_on, self:state_with_metadata(to_metadata)))
+    return self
+  end,
+
+  add_reduce_transition = function(self, from_metadata, transition_on, symbol)
+    list.push(
+      self:state_with_metadata(from_metadata).transitions,
+      ReduceTransition(transition_on, symbol))
+    return self
+  end,
+
+  add_accept_transition = function(self, from_metadata, transition_on)
+    list.push(
+      self:state_with_metadata(from_metadata).transitions,
+      AcceptTransition(transition_on))
     return self
   end,
 
@@ -38,37 +70,21 @@ return Struct({ "states" }, {
   end,
 
   visualize = function(self)
-    local visited_states = {}
-    return self:visualize_state(self.states[1], visited_states)
+    return list.map(self.states, function(state)
+      return self:visualize_state(state)
+    end)
   end,
 
-  visualize_state = function(self, state, visited_states)
-    if list.contains(visited_states, state) then
-      return state.index
-    else
-      list.push(visited_states, state)
-
-      local transitions = {}
-      for i, t in ipairs(state.transitions) do
-        transitions[t[1]:to_string()] = self:visualize_state(t[2], visited_states)
-      end
-      local action_string = state.action and state.action:to_string()
-
-      return { state.index, transitions, action_string }
+  visualize_state = function(self, state)
+    local result = {}
+    for i, transition in ipairs(state.transitions) do
+      result[transition.on:to_string()] = transition:to_string()
     end
+    result["DEFAULT"] = state.default_action and state.default_action:to_string()
+    return result
   end
 }, {
-  Actions = {
-    Reduce = Struct({ "new_sym" }, {
-      to_string = function(self)
-        return "REDUCE " .. self.new_sym
-      end
-    }),
-
-    Accept = Struct({}, {
-      to_string = function()
-        return "ACCEPT"
-      end
-    })()
-  }
+  ShiftTransition = ShiftTransition,
+  ReduceTransition = ReduceTransition,
+  AcceptTransition = AcceptTransition
 })
