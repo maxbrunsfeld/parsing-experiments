@@ -1,10 +1,10 @@
 require("spec_helper")
 
 local list = require("util/list")
-local LR = require("lr")
+local build_parse_table = require("lr/parse_table_builder")
 local Rules = require("rules")
 
-describe("StateMachine", function()
+describe("ParseTable", function()
   local state_machine
   local rules = {
     { "t0", _choice(_sym("t1"), _sym("t2")) },
@@ -15,7 +15,7 @@ describe("StateMachine", function()
     { "t5", _string("c") }}
 
   before_each(function()
-    state_machine = LR.build_state_machine(rules)
+    state_machine = build_parse_table(rules)
   end)
 
   it("turns grammar rules into state transitions and reduce/accept actions", function()
@@ -48,7 +48,7 @@ describe("StateMachine", function()
   end)
 
   it("handles sets of rules with repeating patterns", function()
-    local repeating_machine = LR.build_state_machine({
+    local repeating_machine = build_parse_table({
       { "int", _rep(_class:digit(true)) }
     })
 

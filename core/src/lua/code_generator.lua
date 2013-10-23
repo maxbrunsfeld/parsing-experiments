@@ -1,7 +1,7 @@
 local Struct = require("util/struct")
 local list = require("util/list")
 local Rules = require("rules")
-local StateMachine = require("state_machine")
+local ParseTable = require("lr/parse_table")
 
 local SHIFT_WIDTH = 4
 local LOOKAHEAD_CHAR = "lookahead_char"
@@ -79,35 +79,28 @@ local function condition_for_transition_on(transition_on)
   end
 end
 
-local function code_for_state_transition(transition)
-  local condition = condition_for_transition_on(transition.on)
-  if transition.class == StateMachine.AcceptTransition then
-    body = "goto accept;"
-  elseif transition.class == StateMachine.ReduceTransition then
-    body = "ts_parser_reduce(p, 1, " .. symbol_name(transition.symbol) .. ");"
-  elseif transition.on.class == Rules.Sym then
-    body = [[
-ts_parser_push_state(p, ]] .. transition.to_state.index .. [[);
-goto next_state;]]
-  else
-    body = [[
-ts_parser_shift(p, ]] .. transition.to_state.index .. [[);
-goto next_state;]]
-  end
+local function code_for_state_action(action, rule)
+  if action == nil then return "ts_parser_error(p);" end
 
-  return "if (" .. condition .. ") {\n" ..  indent(body, 1) ..  "\n}"
-end
-
-local function code_for_state_action(action)
-  if action == nil then
-    return "ts_parser_error(p);"
-  elseif action.class == StateMachine.AcceptTransition then
+  if action.class == ParseTable.Actions.Shift then
+    if rule.class == Rules.Sym then
+      return "ts_parser_push_state(p, " .. action.to_state.index .. ");\ngoto next_state;"
+    else
+      return "ts_parser_shift(p, " .. action.to_state.index .. ");\ngoto next_state;"
+    end
+  elseif action.class == ParseTable.Actions.Accept then
     return "goto accept;"
-  elseif action.class == StateMachine.ReduceTransition then
+  elseif action.class == ParseTable.Actions.Reduce then
     return "ts_parser_reduce(p, 1, " .. symbol_name(action.symbol) .. ");"
   else
     error("Unknown parser action: " .. action)
   end
+end
+
+local function code_for_state_transition(transition)
+  local condition = condition_for_transition_on(transition.on)
+  local body = code_for_state_action(transition.action, transition.on)
+  return "if (" .. condition .. ") {\n" ..  indent(body, 1) ..  "\n}"
 end
 
 local function code_for_state_transitions(transitions)
@@ -116,8 +109,10 @@ end
 
 local function code_for_state(state)
   return
-    (#state.transitions > 0 and code_for_state_transitions(state.transitions) or "") ..
-    code_for_state_action(state.default_action)
+    (#state.transitions > 0 and
+      code_for_state_transitions(state.transitions) or
+      "") ..
+    (code_for_state_action(state.default_action))
 end
 
 local function case_for_state(state)

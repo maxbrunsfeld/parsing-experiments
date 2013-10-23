@@ -1,6 +1,5 @@
-local StateMachine = require("state_machine")
 local generate_code = require("code_generator")
-local LR = require("lr")
+local build_parse_table = require("lr/parse_table_builder")
 local Rules = require("rules")
 local path = require("pl.path")
 local alist = require("util/alist")
@@ -34,7 +33,7 @@ function parser_file_path(grammar_name)
 end
 
 function test_generated_code(grammar_name, rules)
-  local state_machine = LR.build_state_machine(rules)
+  local state_machine = build_parse_table(rules)
   local code = generate_code(state_machine, grammar_name, alist.keys(rules))
   local file_path = parser_file_path(grammar_name)
   if PRINT_PARSER then

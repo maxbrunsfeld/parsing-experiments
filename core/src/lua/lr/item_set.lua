@@ -46,5 +46,11 @@ return Struct({}, {
 
     list.push(args, merge_fn)
     return alist.merge(unpack(args))
+  end,
+
+  is_done = function(self)
+    return
+      (#self == 1) and
+      (#(self[1]:transitions()) == 0)
   end
 })
