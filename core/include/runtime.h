@@ -1,61 +1,55 @@
 #include <tree_sitter/document.h>
 #include <ctype.h>
 
-typedef struct {
-  TSTree *tree;
-  int *state_stack;
-  int state_stack_size;
-  TSNode **node_stack;
-  int node_stack_size;
-  int position;
-  const char *input;
-} TSParser;
+typedef int* StateStack;
+typedef int* SymbolStack;
 
-static int ts_parser_state(TSParser *p)
+StateStack symbol_stack_new()
 {
-  int size = p->state_stack_size;
-  return size > 0 ?  p->state_stack[size] : -1;
+  return (int *)calloc(80, sizeof(int));
 }
 
-static char ts_parser_lookahead_char(TSParser *p)
+StateStack state_stack_new()
 {
-  return p->input[p->position];
+  return (int *)calloc(80, sizeof(int));
 }
 
-static void ts_parser_shift(TSParser *p, int state)
-{
-  p->position++;
-  p->state_stack[p->state_stack_size] = state;
-}
+#define PARSE_ERROR() \
+  printf("Error occurred!");
 
-static void ts_parser_push_state(TSParser *p, int state)
-{
-  p->state_stack[p->state_stack_size++] = state;
-}
+#define PARSE_STATES \
+next_state: \
+  switch(current_state)
 
-static void ts_parser_error(TSParser *p)
-{
-  printf("==> OMG error \n");
-}
+#define ACCEPT() \
+  goto accept;
 
-static void ts_parser_reduce(TSParser *p, int symbol_count, int node_type)
-{
-  TSTree *tree = p->tree;
-  TSNode *node = ts_tree_add_node(tree, node_type);
-  ts_tree_set_root(tree, node);
-}
+#define SETUP(tree) \
+  int position = 0; \
+  int current_state = 0; \
+  char lookahead_char = input[0]; \
+  int lookahead_sym = -1; \
+  StateStack *state_stack = state_stack_new(); \
+  SymbolStack *symbol_stack = symbol_stack_new();
 
-static TSParser * ts_parser_new(TSTree *tree, const char *input)
-{
-  TSParser *p = (TSParser *)malloc(sizeof(TSParser));
-  p->state_stack = (int *)calloc(80, sizeof(int));
-  p->node_stack = (TSNode **)calloc(80, sizeof(TSNode *));
-  p->state_stack_size = 0;
-  p->node_stack_size = 0;
-  p->tree = tree;
-  p->position = 0;
-  p->input = input;
-  ts_parser_push_state(p, 1);
-  return p;
-}
+#define ADVANCE(new_state) \
+  { \
+    current_state = new_state; \
+    position++; \
+    lookahead_char = input[position]; \
+  }
 
+#define SHIFT(new_state) \
+  { \
+    symbol_stack_push(symbol_stack, lookahead_sym); \
+    state_stack_push(state_stack, current_state); \
+    current_state = new_state; \
+    goto next_state; \
+  }
+
+#define REDUCE(new_symbol) \
+  { \
+    symbol_stack_reduce(symbol_stack, new_symbol); \
+    current_state = state_stack_pop(); \
+    goto next_state; \
+  }

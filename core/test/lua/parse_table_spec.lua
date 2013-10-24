@@ -55,10 +55,10 @@ describe("ParseTable", function()
     assert.are.same({
       {
         SYM_int = "ACCEPT",
-        CLASS_digit = "SHIFT 2",
+        CLASS_digit = "ADVANCE 2",
       },
       {
-        CLASS_digit = "SHIFT 2",
+        CLASS_digit = "ADVANCE 2",
         DEFAULT = "REDUCE int"
       }
     }, repeating_machine:visualize())

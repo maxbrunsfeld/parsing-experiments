@@ -3,9 +3,9 @@ return {
   CharClass = require("rules/char_class"),
   Choice = require("rules/choice"),
   End = require("rules/end"),
+  Pattern = require("rules/pattern"),
   Repeat = require("rules/repeat"),
   Seq = require("rules/seq"),
-  Sym = require("rules/sym"),
-  Pattern = require("rules/pattern"),
-  String = require("rules/string")
+  String = require("rules/string"),
+  Sym = require("rules/sym")
 }

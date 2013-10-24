@@ -79,19 +79,16 @@ local function condition_for_transition_on(transition_on)
   end
 end
 
-local function code_for_state_action(action, rule)
-  if action == nil then return "ts_parser_error(p);" end
-
+local function code_for_action(action, rule)
+  if action == nil then return "PARSE_ERROR();" end
   if action.class == ParseTable.Actions.Shift then
-    if rule.class == Rules.Sym then
-      return "ts_parser_push_state(p, " .. action.to_state.index .. ");\ngoto next_state;"
-    else
-      return "ts_parser_shift(p, " .. action.to_state.index .. ");\ngoto next_state;"
-    end
+    return "SHIFT(" .. action.to_state.index .. ");"
+  elseif action.class == ParseTable.Actions.Advance then
+    return "ADVANCE(" .. action.to_state.index .. ");"
   elseif action.class == ParseTable.Actions.Accept then
-    return "goto accept;"
+    return "ACCEPT();"
   elseif action.class == ParseTable.Actions.Reduce then
-    return "ts_parser_reduce(p, 1, " .. symbol_name(action.symbol) .. ");"
+    return "REDUCE(" .. symbol_name(action.symbol) .. ");"
   else
     error("Unknown parser action: " .. action)
   end
@@ -99,8 +96,8 @@ end
 
 local function code_for_state_transition(transition)
   local condition = condition_for_transition_on(transition.on)
-  local body = code_for_state_action(transition.action, transition.on)
-  return "if (" .. condition .. ") {\n" ..  indent(body, 1) ..  "\n}"
+  local body = code_for_action(transition.action, transition.on)
+  return "if (" .. condition .. ")\n" ..  indent(body, 1)
 end
 
 local function code_for_state_transitions(transitions)
@@ -112,7 +109,7 @@ local function code_for_state(state)
     (#state.transitions > 0 and
       code_for_state_transitions(state.transitions) or
       "") ..
-    (code_for_state_action(state.default_action))
+    (code_for_action(state.default_action))
 end
 
 local function case_for_state(state)
@@ -155,14 +152,10 @@ rule_names_array(x) ..
 
 TSTree * ]] .. parser_function_name(x) ..  [[(const char *input)
 {
-  char lookahead_char;
-  int lookahead_sym;
   TSTree *tree = ts_tree_new(rule_names);
-  TSParser *p = ts_parser_new(tree, input);
+  SETUP();
 
-next_state:
-  lookahead_char = ts_parser_lookahead_char(p);
-  switch (ts_parser_state(p)) {
+  PARSE_STATES {
 ]] ..
 cases_for_states(x) ..
 [[

@@ -54,6 +54,12 @@ return Struct({ "states" }, {
   end
 }, {
   Actions = {
+    Advance = Struct({ "to_state" }, {
+      to_string = function(self)
+        return "ADVANCE " .. self.to_state.index
+      end
+    }),
+
     Shift = Struct({ "to_state" }, {
       to_string = function(self)
         return "SHIFT " .. self.to_state.index
