@@ -58,7 +58,7 @@ test-lua:
 	busted -m './src/lua/?.lua;./test/lua/?.lua' test/lua
 
 $(TEST_BIN): $(LIB_FILE) $(C_TESTS)
-	c++ -std=c++11 -stdlib=libc++ -I./include -Itest/c -Isrc/c -Iexternals/bantam-bdd -L. -l$(LIB_NAME) test/c/_runner.cc -o $@
+	c++ -g -m64 -std=c++11 -stdlib=libc++ -I./include -Itest/c -Isrc/c -Iexternals/bantam-bdd -L. -l$(LIB_NAME) test/c/_runner.cc -o $@
 
 valgrind: $(TEST_BIN)
 	valgrind --track-origins=yes $(TEST_BIN)
