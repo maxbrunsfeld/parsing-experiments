@@ -41,9 +41,6 @@ local ParseTableBuilder = Struct({ "rules" }, {
 
   add_transition_between_item_sets = function(self, item_set, transition_on, to_item_set)
     local action
-    if to_item_set:is_done() then
-      action = self:action_for_finishing_item(to_item_set[1])
-    else
       self:add_state_for_item_set(to_item_set)
       local to_state = self.table:state_with_metadata(to_item_set)
       if transition_on.class == Rules.Sym then
@@ -51,7 +48,6 @@ local ParseTableBuilder = Struct({ "rules" }, {
       else
         action = ParseTable.Actions.Advance(to_state)
       end
-    end
     self.table:add_transition(item_set, transition_on, action)
   end,
 

@@ -21,21 +21,42 @@ describe("ParseTable", function()
   it("turns grammar rules into state transitions and reduce/accept actions", function()
     assert.are.same({
       {
-        SYM_t0 = "ACCEPT",
-        SYM_t1 = "REDUCE t0",
-        SYM_t2 = "REDUCE t0",
-        SYM_t3 = "SHIFT 2",
-        SYM_t4 = "SHIFT 3",
-        CHAR_a = "REDUCE t3",
-        CHAR_b = "REDUCE t4"
+        SYM_t0 = 'SHIFT 2',
+        SYM_t1 = 'SHIFT 3',
+        SYM_t2 = 'SHIFT 3',
+        SYM_t3 = 'SHIFT 4',
+        CHAR_b = 'ADVANCE 10',
+        SYM_t4 = 'SHIFT 8',
+        CHAR_a = 'ADVANCE 7',
       },
       {
-        SYM_t5 = "REDUCE t1",
-        CHAR_c = "REDUCE t5"
+        DEFAULT = 'ACCEPT'
       },
       {
-        SYM_t5 = "REDUCE t2",
-        CHAR_c = "REDUCE t5"
+        DEFAULT = 'REDUCE t0'
+      },
+      {
+        SYM_t5 = 'SHIFT 5',
+        CHAR_c = 'ADVANCE 6',
+      },
+      {
+        DEFAULT = 'REDUCE t1'
+      },
+      {
+        DEFAULT = 'REDUCE t5'
+      },
+      {
+        DEFAULT = 'REDUCE t3'
+      },
+      {
+        CHAR_c = 'ADVANCE 6',
+        SYM_t5 = 'SHIFT 9'
+      },
+      {
+        DEFAULT = 'REDUCE t2'
+      },
+      {
+        DEFAULT = 'REDUCE t4'
       }
     }, state_machine:visualize())
   end)
@@ -54,11 +75,14 @@ describe("ParseTable", function()
 
     assert.are.same({
       {
-        SYM_int = "ACCEPT",
-        CLASS_digit = "ADVANCE 2",
+        SYM_int = "SHIFT 2",
+        CLASS_digit = "ADVANCE 3",
       },
       {
-        CLASS_digit = "ADVANCE 2",
+        DEFAULT = "ACCEPT"
+      },
+      {
+        CLASS_digit = "ADVANCE 3",
         DEFAULT = "REDUCE int"
       }
     }, repeating_machine:visualize())
