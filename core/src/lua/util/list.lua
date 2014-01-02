@@ -27,6 +27,16 @@ local function map(t, fn)
   return result
 end
 
+local function filter(t, fn)
+  local result = {}
+  for i, entry in ipairs(t) do
+    if fn(entry) then
+      push(result, entry)
+    end
+  end
+  return result
+end
+
 local function pluck(t, field_name)
   return map(t, function(row) return row[field_name] end)
 end
@@ -56,6 +66,7 @@ return {
   contains = contains,
   copy = copy,
   deepcompare = deepcompare,
+  filter = filter,
   find = find,
   map = map,
   mapcat = mapcat,

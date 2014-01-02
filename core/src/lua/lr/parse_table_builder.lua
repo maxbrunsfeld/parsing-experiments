@@ -14,7 +14,7 @@ local ParseTableBuilder = Struct({ "rules" }, {
 
   build = function(self)
     local start_rule_name = self.rules[1][1]
-    local start_item = Item(AUGMENTED_RULE, Rules.Sym(start_rule_name))
+    local start_item = Item(AUGMENTED_RULE, Rules.Sym(start_rule_name), 0)
     local item_set = ItemSet(start_item, self.rules)
     self:add_state_for_item_set(item_set)
     return self.table
@@ -55,7 +55,7 @@ local ParseTableBuilder = Struct({ "rules" }, {
     if item.name == AUGMENTED_RULE then
       return ParseTable.Actions.Accept()
     else
-      return ParseTable.Actions.Reduce(item.name)
+      return ParseTable.Actions.Reduce(item.name, item.symbol_count)
     end
   end
 })

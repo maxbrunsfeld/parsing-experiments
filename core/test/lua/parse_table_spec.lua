@@ -33,30 +33,30 @@ describe("ParseTable", function()
         DEFAULT = 'ACCEPT'
       },
       {
-        DEFAULT = 'REDUCE t0'
+        DEFAULT = 'REDUCE 1 t0'
       },
       {
         SYM_t5 = 'SHIFT 5',
         CHAR_c = 'ADVANCE 6',
       },
       {
-        DEFAULT = 'REDUCE t1'
+        DEFAULT = 'REDUCE 2 t1'
       },
       {
-        DEFAULT = 'REDUCE t5'
+        DEFAULT = 'REDUCE 0 t5'
       },
       {
-        DEFAULT = 'REDUCE t3'
+        DEFAULT = 'REDUCE 0 t3'
       },
       {
         CHAR_c = 'ADVANCE 6',
         SYM_t5 = 'SHIFT 9'
       },
       {
-        DEFAULT = 'REDUCE t2'
+        DEFAULT = 'REDUCE 2 t2'
       },
       {
-        DEFAULT = 'REDUCE t4'
+        DEFAULT = 'REDUCE 0 t4'
       }
     }, state_machine:visualize())
   end)
@@ -83,7 +83,7 @@ describe("ParseTable", function()
       },
       {
         CLASS_digit = "ADVANCE 3",
-        DEFAULT = "REDUCE int"
+        DEFAULT = "REDUCE 0 int"
       }
     }, repeating_machine:visualize())
   end)

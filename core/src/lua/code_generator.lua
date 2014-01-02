@@ -88,7 +88,9 @@ local function code_for_action(action, rule)
   elseif action.class == ParseTable.Actions.Accept then
     return "ACCEPT();"
   elseif action.class == ParseTable.Actions.Reduce then
-    return "REDUCE(" .. symbol_name(action.symbol) .. ");"
+    return "REDUCE(" ..
+      action.child_count .. ", " ..
+      symbol_name(action.symbol) .. ");"
   else
     error("Unknown parser action: " .. action)
   end

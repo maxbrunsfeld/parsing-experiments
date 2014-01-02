@@ -23,7 +23,7 @@ return Struct({}, {
       list.push(self, item)
       for i, symbol in ipairs(item:next_symbols()) do
         local rule = alist.get(rules, symbol.name)
-        local transition_item = Item(symbol.name, rule)
+        local transition_item = Item(symbol.name, rule, 0)
         self:add_item(transition_item, rules)
       end
     end

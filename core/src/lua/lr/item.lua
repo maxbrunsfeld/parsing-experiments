@@ -16,20 +16,23 @@ end
 return Struct({ "name", "rule" }, {
   required = { "name", "rule" },
 
+  initialize = function(self, name, rule, symbol_count)
+    self.symbol_count = symbol_count
+  end,
+
   transitions = function(self)
-    return alist.map(self.rule:transitions(), function(rule)
-      return self.class(self.name, rule)
+    return list.map(self.rule:transitions(), function(transition)
+      local symbol_count = (transition[1].class == Rules.Sym) and
+        (self.symbol_count + 1) or
+        self.symbol_count
+      return { transition[1], self.class(self.name, transition[2], symbol_count) }
     end)
   end,
 
   next_symbols = function(self)
-    local result = {}
-    for i, transition in ipairs(self:transitions()) do
-      if transition[1].class == Rules.Sym then
-        list.push(result, transition[1])
-      end
-    end
-    return result
+    return list.filter(list.pluck(self:transitions(), 1), function(transition_on)
+      return transition_on.class == Rules.Sym
+    end)
   end,
 
   is_done = function(self)

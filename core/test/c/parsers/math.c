@@ -79,7 +79,7 @@ TSTree * ts_parse_math(const char *input)
     {
       if (p.lookahead_char == '*')
         ADVANCE(5);
-      REDUCE(symbol_expr);
+      REDUCE(2, symbol_expr);
       break;
     }
 
@@ -103,13 +103,13 @@ TSTree * ts_parse_math(const char *input)
 
     case 6:
     {
-      REDUCE(symbol_term);
+      REDUCE(2, symbol_term);
       break;
     }
 
     case 7:
     {
-      REDUCE(symbol_factor);
+      REDUCE(1, symbol_factor);
       break;
     }
 
@@ -149,7 +149,7 @@ TSTree * ts_parse_math(const char *input)
     {
       if (isdigit(p.lookahead_char))
         ADVANCE(10);
-      REDUCE(symbol_number);
+      REDUCE(0, symbol_number);
       break;
     }
 
@@ -157,7 +157,7 @@ TSTree * ts_parse_math(const char *input)
     {
       if (isalnum(p.lookahead_char))
         ADVANCE(11);
-      REDUCE(symbol_variable);
+      REDUCE(0, symbol_variable);
       break;
     }
   }

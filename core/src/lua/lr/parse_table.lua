@@ -66,9 +66,9 @@ return Struct({ "states" }, {
       end
     }),
 
-    Reduce = Struct({ "symbol" }, {
+    Reduce = Struct({ "symbol", "child_count" }, {
       to_string = function(self)
-        return "REDUCE " .. self.symbol
+        return "REDUCE " .. self.child_count .. " " .. self.symbol
       end
     }),
 

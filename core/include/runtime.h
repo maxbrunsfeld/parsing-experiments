@@ -60,12 +60,12 @@ typedef struct {
   TSTree *tree;
   const char *input;
   int position;
-  int current_state;
   char lookahead_char;
   int lookahead_sym;
   TSNode *lookahead_node;
-  TSStateStack state_stack;
   TSNodeStack node_stack;
+  int current_state;
+  TSStateStack state_stack;
 } TSParser;
 
 static TSParser ts_parser_new(const char *input, const char **rule_names)
@@ -99,16 +99,14 @@ static inline void ts_parser_advance(TSParser *p, int new_state)
 {
   p->position++;
   p->lookahead_char = p->input[p->position];
+  ts_state_stack_push(p->state_stack, p->current_state);
   p->current_state = new_state;
 }
 
-static inline void ts_parser_reduce(TSParser *p, int symbol)
+static inline void ts_parser_reduce(TSParser *p, int child_count, int symbol)
 {
   TSNode *node = ts_tree_add_node(p->tree, symbol);
   ts_tree_set_root(p->tree, node);
-
-  // TODO - compute this correctly
-  int child_count = 0;
 
   TSNode **children = ts_node_stack_pop(p->node_stack, child_count);
   for (int i = 0; i < child_count; i++)
@@ -116,7 +114,7 @@ static inline void ts_parser_reduce(TSParser *p, int symbol)
   p->current_state = ts_state_stack_pop(p->state_stack, child_count);
 }
 
-/* --- Runtime --- */
+/* --- DSL --- */
 
 #define SETUP_PARSER() \
   TSParser p = ts_parser_new(input, rule_names); \
@@ -142,8 +140,8 @@ parse_error: \
   { ts_parser_shift(&p, new_state); \
     goto next_state; }
 
-#define REDUCE(symbol) \
-  { ts_parser_reduce(&p, symbol); \
+#define REDUCE(child_count, symbol) \
+  { ts_parser_reduce(&p, child_count, symbol); \
     goto next_state; }
 
 #define PARSE_ERROR() \
